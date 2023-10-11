@@ -24,7 +24,6 @@ namespace Backand.ManagersClasses
         Construction construction = constructions.FirstOrDefault((c) => c.ConstructionId == id);
         if (construction != null)
         {
-
             await context.Response.WriteAsJsonAsync(construction);
         }
         else

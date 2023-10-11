@@ -1,11 +1,5 @@
 ﻿using Backand.DbEntites;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Drawing;
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Update.Internal;
-using Backand.DbEntites;
 
 namespace Backand
 {
@@ -48,7 +42,7 @@ namespace Backand
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=Zaebalsya;Username=postgres;Password=OPG2003OPG555");
+            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=gazprom_db;Username=postgres;Password=admin");
         }
     }
 }

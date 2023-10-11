@@ -6,35 +6,6 @@ using NpgsqlTypes;
 
 namespace Backand.DbEntites
 {
-    public class Mine 
-    {
-        [Key]
-        //[Column ("field_id")]
-        public int MineId  { get; set; }
-        //[Column("field_name")]
-        public string Name { get; set; }
-
-        //[Column("field_coordinate")]
-        public NpgsqlTypes.NpgsqlPoint Coordinates { get; set; }
-    }
-
-    public class Objects
-    {
-        [Key]
-        public int ObjectsId { get; set; }
-        public string Name { get; set; }
-        public NpgsqlTypes.NpgsqlPoint Coordinates { get; set; }
-        public int MineId { get; set; }
-    }
-
-     public class Construction
-    {
-        [Key]
-        public int ConstructionId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public Boolean IsWorkshop { get; set; }
-    }
 
     public class Objects_Construction
     {

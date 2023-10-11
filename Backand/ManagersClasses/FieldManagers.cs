@@ -1,17 +1,26 @@
 ﻿using Backand.DbEntites;
 using System.Xml.Linq;
-
+using Backand.FrontendEntities;
 namespace Backand.ManagersClasses
 {
+    class FrontendMine
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
     public class FieldManagers
     {
+        public static async Task GetTest(HttpContext context)
+        {
+
+        }
         //Get all fields
         public static async Task GetAllMines(HttpContext context)
         {
 
-            List<Mine> mines;
-            using (ApplicationContext db = new ApplicationContext())
-                mines = db.Mine.ToList();
+            List<MineLink> mines;
+            using (ApplicationContext db = new())
+                mines = db.Mine.Select(mine=>mine.Link).ToList();
             await context.Response.WriteAsJsonAsync(mines);
         }
 
@@ -69,7 +78,7 @@ namespace Backand.ManagersClasses
                     if (mine != null)
                     {
                         mine.Name = mineData.Name;
-                        mine.Coordinates = mineData.Coordinates;
+                        //mine.Coordinates = mineData.Coordinates;
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(mine);
                     }

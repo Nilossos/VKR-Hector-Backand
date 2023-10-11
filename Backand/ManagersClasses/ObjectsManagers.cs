@@ -5,37 +5,42 @@ namespace Backand.ManagersClasses
     public class ObjectsManagers
     {
             //Get all objects
-            public static async Task GetAllObjects(HttpContext context)
+        public static async Task GetAllObjects(HttpContext context)
+        {
+
+            List<Objects> objects;
+            using (ApplicationContext db = new ApplicationContext())
+                objects = db.Objects.ToList();
+            await context.Response.WriteAsJsonAsync(objects);
+        }
+
+        //Get object by id 
+        public static async Task GetObjectById(int id, HttpContext context)
+        {
+            List<Objects> objects;
+            using (ApplicationContext db = new ApplicationContext())
+                objects = db.Objects.ToList();
+            Objects object1 = objects.FirstOrDefault((f) => f.ObjectsId == id);
+            if (object1 != null)
             {
 
-                List<Objects> objects;
-                using (ApplicationContext db = new ApplicationContext())
-                    objects = db.Objects.ToList();
-                await context.Response.WriteAsJsonAsync(objects);
+                await context.Response.WriteAsJsonAsync(object1);
             }
-
-            //Get object by id 
-            public static async Task GetObjectById(int id, HttpContext context)
+            else
             {
-                List<Objects> objects;
-                using (ApplicationContext db = new ApplicationContext())
-                    objects = db.Objects.ToList();
-                Objects object1 = objects.FirstOrDefault((f) => f.ObjectsId == id);
-                if (object1 != null)
-                {
-
-                    await context.Response.WriteAsJsonAsync(object1);
-                }
-                else
-                {
-                    await context.Response.WriteAsJsonAsync("Object is null");
-                }
+                await context.Response.WriteAsJsonAsync("Object is null");
             }
-
-            //Create new object 
-            public static async Task CreateObject(HttpContext context)
-            {
-                List<Objects> objects;
+        }
+        //Get objects by mine id
+        public static async Task<IResult> GetObjectsByMineId(int mine_id,ApplicationContext appContext)
+        {
+            var res=await Task.Run(()=>appContext.Objects.Where(o => o.MineId == mine_id).ToList());
+            return Results.Json(res);
+        }
+        //Create new object 
+        public static async Task CreateObject(HttpContext context)
+        {
+            List<Objects> objects;
             using (ApplicationContext db = new ApplicationContext())
             {
                 objects = db.Objects.ToList();
@@ -55,7 +60,7 @@ namespace Backand.ManagersClasses
                     await context.Response.WriteAsJsonAsync("Object hasn't enought parameters");
                 }
             }
-            }
+        }
 
         //Update object
         public static async Task UpdateObject(HttpContext context)

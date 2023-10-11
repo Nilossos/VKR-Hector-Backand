@@ -1,14 +1,13 @@
-using System;
-using System.Drawing;
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Update.Internal;
-using Backand.DbEntites;
 using Backand;
 using Backand.ManagersClasses;
 
 var builder = WebApplication.CreateBuilder();
+builder.Services.AddCors();
+builder.Services.AddDbContext<ApplicationContext>();
 var app = builder.Build();
+app.UseCors(builder => builder.
+                        WithOrigins("http://localhost:3000").
+                        AllowAnyMethod());
 
 //CRUD FOR MINES
 app.MapGet("/field/", FieldManagers.GetAllMines);
@@ -19,6 +18,7 @@ app.MapPut("/field/", FieldManagers.UpdateMine);
 
 //CRUD FOR OBJECTS
 app.MapGet("/objects/", ObjectsManagers.GetAllObjects);
+app.MapGet("/objects/byMine/{mine_id:int}", ObjectsManagers.GetObjectsByMineId);
 app.MapGet("/objects/{id}", ObjectsManagers.GetObjectById);
 app.MapDelete("/objects/{id}", ObjectsManagers.DeleteObject);
 app.MapPost("/objects/", ObjectsManagers.CreateObject);
