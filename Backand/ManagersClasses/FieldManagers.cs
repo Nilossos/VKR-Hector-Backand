@@ -15,13 +15,11 @@ namespace Backand.ManagersClasses
 
         }
         //Get all fields
-        public static async Task GetAllMines(HttpContext context)
+        public static async Task<IResult> GetAllMines(ApplicationContext context)
         {
-
-            List<MineLink> mines;
-            using (ApplicationContext db = new())
-                mines = db.Mine.Select(mine=>mine.Link).ToList();
-            await context.Response.WriteAsJsonAsync(mines);
+            var mines = await Task.Run(() => context.Mine.Select(mine => mine.Link));
+            return Results.Json(mines);
+            
         }
 
         //Get field by id 

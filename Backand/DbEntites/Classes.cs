@@ -150,9 +150,10 @@ namespace Backand.DbEntites
         public string Patronymic { get; set; }
         public string PhoneNumber { get; set; }
         public DateTime BirthDate { get; set; }
-        public string Post { get; set; }
-        public string Proto { get; set; }
-        public string Token { get; set; }
+        //public string Post { get; set; }
+        [Column("PhotoPath")]
+        public string? Photo { get; set; }
+        public string? Token { get; set; }
     }
 
 

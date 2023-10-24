@@ -1,4 +1,5 @@
 ﻿using Backand.DbEntites;
+using Backand.FrontendEntities;
 
 namespace Backand.ManagersClasses
 {
@@ -34,7 +35,10 @@ namespace Backand.ManagersClasses
         //Get objects by mine id
         public static async Task<IResult> GetObjectsByMineId(int mine_id,ApplicationContext appContext)
         {
-            var res=await Task.Run(()=>appContext.Objects.Where(o => o.MineId == mine_id).ToList());
+            var res=await Task.Run(()=>appContext.Objects.
+                Where(o => o.MineId == mine_id).
+                Select(o=>o.Link).
+                ToList());
             return Results.Json(res);
         }
         //Create new object 

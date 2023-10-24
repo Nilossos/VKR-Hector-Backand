@@ -1,5 +1,6 @@
 using Backand;
 using Backand.ManagersClasses;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder();
 builder.Services.AddCors();
@@ -19,15 +20,15 @@ app.MapPut("/field/", FieldManagers.UpdateMine);
 //CRUD FOR OBJECTS
 app.MapGet("/objects/", ObjectsManagers.GetAllObjects);
 app.MapGet("/objects/byMine/{mine_id:int}", ObjectsManagers.GetObjectsByMineId);
-app.MapGet("/objects/{id}", ObjectsManagers.GetObjectById);
-app.MapDelete("/objects/{id}", ObjectsManagers.DeleteObject);
+app.MapGet("/object/{id}", ObjectsManagers.GetObjectById);
+app.MapDelete("/object/{id}", ObjectsManagers.DeleteObject);
 app.MapPost("/objects/", ObjectsManagers.CreateObject);
 app.MapPut("/objects/", ObjectsManagers.UpdateObject);
 
 
 //CRUD FOR CONSTRUCTION 
 app.MapGet("/constructions/", ConstructionManagers.GetAllConstructions);
-app.MapGet("/constructions/{id}", ConstructionManagers.GetConstructionById);
+app.MapGet("/constructions/{object_id:int}", ConstructionManagers.GetConstructionsById);
 app.MapDelete("/constructions/{id}", ConstructionManagers.DeleteConstruction);
 app.MapPost("/constructions/", ConstructionManagers.CreateConstruction);
 app.MapPut("/constructions/", ConstructionManagers.UpdateConstruction);

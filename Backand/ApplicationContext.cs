@@ -38,7 +38,7 @@ namespace Backand
         public DbSet<UserType> UserType { get; set; }
 
         public DbSet<User> User { get; set; }
-
+        public DbSet<ConstructionType> ConstructionType { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

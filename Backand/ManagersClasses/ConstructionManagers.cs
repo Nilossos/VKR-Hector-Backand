@@ -1,95 +1,95 @@
 ﻿using Backand.DbEntites;
+using Backand.FrontendEntities;
 
 namespace Backand.ManagersClasses
 {
 
     public static class ConstructionManagers
-        {
-    //Get all construction
-    public static async Task GetAllConstructions(HttpContext context)
     {
-
-        List<Construction> constructions;
-        using (ApplicationContext db = new ApplicationContext())
-            constructions = db.Construction.ToList();
-        await context.Response.WriteAsJsonAsync(constructions);
-    }
-
-    //Get object by id 
-    public static async Task GetConstructionById(int id, HttpContext context)
-    {
-        List<Construction> constructions;
-        using (ApplicationContext db = new ApplicationContext())
-            constructions = db.Construction.ToList();
-        Construction construction = constructions.FirstOrDefault((c) => c.ConstructionId == id);
-        if (construction != null)
+        //Get all construction
+        public static async Task GetAllConstructions(HttpContext context)
         {
-            await context.Response.WriteAsJsonAsync(construction);
-        }
-        else
-        {
-            await context.Response.WriteAsJsonAsync("Construction  is null");
-        }
-    }
 
-    //Create new object 
-    public static async Task CreateConstruction(HttpContext context)
-    {
-        List<Construction> constructions;
-           
+            List<Construction> constructions;
             using (ApplicationContext db = new ApplicationContext())
-            {
                 constructions = db.Construction.ToList();
-                Construction construction = await context.Request.ReadFromJsonAsync<Construction>();
-                if (construction != null)
-                {
-
-                    //object1.ObjectsId = newId;
-
-                    constructions.Add(construction);
-                    await db.SaveChangesAsync();
-                    await context.Response.WriteAsJsonAsync(construction);
-                }
-                else
-                {
-                    await context.Response.WriteAsJsonAsync("Constructor hasn't enought parameters");
-                }
-            }
-    }
-
-        //Update object
-        public static async Task UpdateConstruction(HttpContext context)
+            await context.Response.WriteAsJsonAsync(constructions);
+        }
+        //Get object by id
+        public static async Task<IResult> GetConstructionsById(int object_id, ApplicationContext dbContext)
         {
-            Construction constructionData = await context.Request.ReadFromJsonAsync<Construction>();
-            if (constructionData != null)
+            /*ConstructionLink[] links = await Task.Run(() =>
             {
-                List<Construction> constructions;
+                var _constructions = dbContext.Objects_Construction.
+                    Where(link => link.ObjectsId == object_id).
+                    Select(link => dbContext.Construction.First(c=>c.ConstructionId==link.ConstructionId));
+                var names =_constructions.
+                        Select(c=>dbContext.ConstructionType.First(type=>c.ConstructionTypeId==type.ConstructionTypeId)).
+                        Select(type=>type.Name);
+                
+                return _links.ToArray();
+            });*/
+            return Results.Json(new List<ConstructionLink>() { });
+        }
 
+        //Create new object 
+        public static async Task CreateConstruction(HttpContext context)
+        {
+            List<Construction> constructions;
+           
                 using (ApplicationContext db = new ApplicationContext())
                 {
                     constructions = db.Construction.ToList();
-                    var construction = constructions.FirstOrDefault(c => c.ConstructionId == constructionData.ConstructionId);
+                    Construction construction = await context.Request.ReadFromJsonAsync<Construction>();
                     if (construction != null)
                     {
-                        construction.Name = constructionData.Name;
-                        construction.Description = constructionData.Description;
-                        construction.IsWorkshop = constructionData.IsWorkshop;
+
+                        //object1.ObjectsId = newId;
+
+                        constructions.Add(construction);
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(construction);
                     }
-
                     else
                     {
-                        await context.Response.WriteAsJsonAsync("Construction is null");
+                        await context.Response.WriteAsJsonAsync("Constructor hasn't enought parameters");
                     }
                 }
-            }
         }
 
-    //Delete field 
-    public static async void DeleteConstruction(HttpContext context, int id)
-    {
-        List<Construction> constructions;
+            //Update object
+            public static async Task UpdateConstruction(HttpContext context)
+            {
+                /*Construction constructionData = await context.Request.ReadFromJsonAsync<Construction>();
+                if (constructionData != null)
+                {
+                    List<Construction> constructions;
+
+                    using (ApplicationContext db = new ApplicationContext())
+                    {
+                        constructions = db.Construction.ToList();
+                        var construction = constructions.FirstOrDefault(c => c.ConstructionId == constructionData.ConstructionId);
+                        if (construction != null)
+                        {
+                            construction.Name = constructionData.Name;
+                            construction.Description = constructionData.Description;
+                            construction.IsWorkshop = constructionData.IsWorkshop;
+                            await db.SaveChangesAsync();
+                            await context.Response.WriteAsJsonAsync(construction);
+                        }
+
+                        else
+                        {
+                            await context.Response.WriteAsJsonAsync("Construction is null");
+                        }
+                    }
+                }*/
+            }
+
+        //Delete field 
+        public static async void DeleteConstruction(HttpContext context, int id)
+        {
+            List<Construction> constructions;
             using (ApplicationContext db = new ApplicationContext())
             {
                 constructions = db.Construction.ToList();
@@ -108,6 +108,6 @@ namespace Backand.ManagersClasses
                     await context.Response.WriteAsJsonAsync("Construction doen't exist");
                 }
             }
+        }
     }
-}
 }

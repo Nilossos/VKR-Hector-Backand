@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Backand.FrontendEntities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Backand.DbEntites
 {
@@ -6,8 +7,9 @@ namespace Backand.DbEntites
     {
         [Key]
         public int ConstructionId { get; set; }
-        public string Name { get; set; }
+        public int ConstructionTypeId { get; set; }
         public string Description { get; set; }
         public Boolean IsWorkshop { get; set; }
+        
     }
 }

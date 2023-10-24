@@ -14,7 +14,7 @@ namespace Backand.DbEntites
         public Spot Center { get => Coordinates.ToSpot(); }
         public int SubsidiaryId { get; set; }
         [JsonIgnore]
-        public MineLink Link { get => new() { Id = MineId, Name = Name}; }
+        public EntityLink Link { get => new() { Id = MineId, Name = Name}; }
         //private Spot _center;
     }
 }

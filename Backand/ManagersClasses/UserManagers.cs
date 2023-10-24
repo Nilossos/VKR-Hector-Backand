@@ -68,8 +68,8 @@ namespace Backand.ManagersClasses
                     {
                         item.Surname = UserData.Surname;
                         item.PhoneNumber = UserData.PhoneNumber;
-                        item.Proto = UserData.Proto;
-                        item.Post = UserData.Post;
+                        item.Photo = UserData.Photo;
+                        //item.Post = UserData.Post;
                         item.BirthDate = UserData.BirthDate;
                         item.FirstName = UserData.FirstName;
                         item.UserTypeId = UserData.UserTypeId;
