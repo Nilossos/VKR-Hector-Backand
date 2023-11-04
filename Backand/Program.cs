@@ -5,17 +5,13 @@ using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder();
 builder.Services.AddCors();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 builder.Services.AddDbContext<ApplicationContext>();
 var app = builder.Build();
 app.UseCors(builder => builder.
                         WithOrigins("http://localhost:3000").
                         AllowAnyMethod());
 
-app.MapPost("/test", async (HttpContext context) =>
-{
-    TestData data =await context.Request.ReadFromJsonAsync<TestData>();
-    Console.WriteLine($"id: {data.Id}\nname:{data.Name};\nage:{data.Age}");
-});
 //CRUD FOR MINES
 app.MapGet("/field", FieldManagers.GetAllMines);
 app.MapGet("/field/{id}",FieldManagers.GetMineById);

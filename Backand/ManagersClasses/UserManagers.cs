@@ -1,5 +1,7 @@
 ﻿using Backand.DbEntites;
 using Backand.FrontendEntities;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Backand.ManagersClasses
 {
@@ -31,18 +33,22 @@ namespace Backand.ManagersClasses
                 await context.Response.WriteAsJsonAsync("Item is null");
             }
         }
-
+        static string GetHashedPassword(string password)
+        {
+            var password_bytes = Encoding.UTF8.GetBytes(password);
+            var hashed = SHA256.HashData(password_bytes);
+            return Convert.ToBase64String(hashed);
+        }
         //Create new field 
         public static async Task CreateUser(HttpContext context)
         {
-            List<User> list;
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.User.ToList();
                 User item = await context.Request.ReadFromJsonAsync<User>();
 
                 if (item != null)
                 {
+                    item.Password = GetHashedPassword(item.Password);
                     db.User.Add(item);
                     await db.SaveChangesAsync(); // Save changes to the database
                     await context.Response.WriteAsJsonAsync(item);
