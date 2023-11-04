@@ -1,5 +1,6 @@
 ﻿using Backand.DbEntites;
 using Backand.FrontendEntities;
+using Backand.FrontendEntities.Links;
 
 namespace Backand.ManagersClasses
 {
@@ -15,46 +16,55 @@ namespace Backand.ManagersClasses
                 constructions = db.Construction.ToList();
             await context.Response.WriteAsJsonAsync(constructions);
         }
-        //Get object by id
-        public static async Task<IResult> GetConstructionsById(int object_id, ApplicationContext dbContext)
+        //Get by object id
+        public static async Task<IResult> GetConstructionsByObjectId(int object_id, ApplicationContext dbContext)
         {
-            /*ConstructionLink[] links = await Task.Run(() =>
+            EntityLink[] links = await Task.Run(() =>
             {
-                var _constructions = dbContext.Objects_Construction.
-                    Where(link => link.ObjectsId == object_id).
-                    Select(link => dbContext.Construction.First(c=>c.ConstructionId==link.ConstructionId));
-                var names =_constructions.
-                        Select(c=>dbContext.ConstructionType.First(type=>c.ConstructionTypeId==type.ConstructionTypeId)).
-                        Select(type=>type.Name);
-                
-                return _links.ToArray();
-            });*/
-            return Results.Json(new List<ConstructionLink>() { });
+                var _links = dbContext.Construction.
+                    Where(c=>c.ObjectsId==object_id).
+                    Select(c=>c.Link).ToArray();
+                return _links;
+            });
+            return Results.Json(links);
         }
-
-        //Create new object 
-        public static async Task CreateConstruction(HttpContext context)
+        public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext)
         {
-            List<Construction> constructions;
-           
-                using (ApplicationContext db = new ApplicationContext())
+            var task = Task.Run(() =>
+            {
+                Construction construction = dbContext.Construction.First(c => c.ConstructionId == construction_id);
+                ConstructionInfo info = new(construction, dbContext);
+                return Results.Json(info);
+            });
+            return await task;
+        }
+        //Create new object 
+        public static async Task<IResult> CreateConstruction(HttpContext context,ApplicationContext dbContext)
+        {
+            BaseResponse response;
+            try
+            {
+                var constructions = dbContext.Construction;
+
+                Construction? construction = await context.Request.ReadFromJsonAsync<Construction>();
+
+                if (construction != null)
                 {
-                    constructions = db.Construction.ToList();
-                    Construction construction = await context.Request.ReadFromJsonAsync<Construction>();
-                    if (construction != null)
-                    {
-
-                        //object1.ObjectsId = newId;
-
-                        constructions.Add(construction);
-                        await db.SaveChangesAsync();
-                        await context.Response.WriteAsJsonAsync(construction);
-                    }
-                    else
-                    {
-                        await context.Response.WriteAsJsonAsync("Constructor hasn't enought parameters");
-                    }
+                    construction.ConstructionStateId =BuildState.Planned;
+                    construction.ConstructionId = 0;
+                    await constructions.AddAsync(construction);
+                    await dbContext.SaveChangesAsync();
+                    response = new(false, "Construction has added!");
                 }
+                else
+                    response = new(true, "Incorrect construction data!");
+
+            }
+            catch(Exception exc)
+            {
+                response =new(false,exc.ToString());
+            }
+            return Results.Json(response);
         }
 
             //Update object

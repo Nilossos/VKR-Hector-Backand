@@ -1,4 +1,5 @@
 ﻿using Backand.DbEntites;
+using Backand.FrontendEntities;
 
 namespace Backand.ManagersClasses
 {
@@ -88,27 +89,29 @@ namespace Backand.ManagersClasses
             }
         }
         //Delete field 
-        public static async void DeleteUser(HttpContext context, int id)
+        public static async Task<IResult> DeleteUser(ApplicationContext dbContext, int id)
         {
-            List<User> list;
-            // если пользователь найден, удаляем его
-            using (ApplicationContext db = new ApplicationContext())
+            return await Task.Run(() =>
             {
-                list = db.User.ToList();
-                User item = list.FirstOrDefault((f) => f.UserId == id);
-                if (item != null)
+                BaseResponse response;
+                var user = dbContext.User.FirstOrDefault(u=>u.UserId==id);
+                if (user != null)
                 {
-                    list.Remove(item);
-                    await db.SaveChangesAsync();
-                    await context.Response.WriteAsJsonAsync(item);
-
+                    try
+                    {
+                        var res=dbContext.User.Remove(user);
+                        dbContext.SaveChanges();
+                        response = new(false, $"User with id '{id}' has removed!");
+                    }
+                    catch(Exception exc)
+                    {
+                        response = new(true,exc.ToString());
+                    }
                 }
-                // если не найден, отправляем статусный код и сообщение об ошибке
                 else
-                {
-                    await context.Response.WriteAsJsonAsync("Item doen't exist");
-                }
-            }
+                    response = new(true,$"User with id '{id}' doesn't exist");
+                return Results.Json(response);
+            });
         }
 
     }

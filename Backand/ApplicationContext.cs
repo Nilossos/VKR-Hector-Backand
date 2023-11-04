@@ -8,9 +8,8 @@ namespace Backand
         public DbSet<Mine> Mine { get; set; }
         public DbSet<Objects> Objects { get; set; }
         public DbSet <Construction> Construction { get; set; }
-
-       public DbSet <Objects_Construction> Objects_Construction { get; set; }
-
+        public DbSet<ConstructionState> ConstructionState { get; set; }
+        public DbSet<Subsidiary> Subsidiary { get; set; } = null!;
         public DbSet <ConstructionUnitType> ConstructionUnitType { get; set; }
 
         public DbSet<ConstructionUnit> ConstructionUnit { get; set; }

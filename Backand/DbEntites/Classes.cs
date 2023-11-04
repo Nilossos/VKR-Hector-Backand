@@ -1,8 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Drawing;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
-using NpgsqlTypes;
 
 namespace Backand.DbEntites
 {

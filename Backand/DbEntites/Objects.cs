@@ -1,4 +1,5 @@
 ﻿using Backand.FrontendEntities;
+using Backand.FrontendEntities.Links;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 

@@ -1,6 +1,9 @@
 ﻿using Backand.DbEntites;
 using System.Xml.Linq;
 using Backand.FrontendEntities;
+using Backand.FrontendEntities.Links;
+using Microsoft.EntityFrameworkCore;
+
 namespace Backand.ManagersClasses
 {
     class FrontendMine
@@ -17,26 +20,32 @@ namespace Backand.ManagersClasses
         //Get all fields
         public static async Task<IResult> GetAllMines(ApplicationContext context)
         {
-            var mines = await Task.Run(() => context.Mine.Select(mine => mine.Link));
+           
+            var mines = await Task.Run(() => context.Mine.Select(mine => new MineLink
+            {
+                Id=mine.MineId,
+                Name=mine.Name,
+                Coordination=mine.Center,
+                Objects = context.Objects.Where(o=>o.MineId==mine.MineId).
+                    Select(o => new MapLink 
+                    {
+                        Id=o.ObjectsId,
+                        Name=o.Name, 
+                        Coordination=o.Spot
+                    }).ToArray()
+            }));
             return Results.Json(mines);
-            
         }
 
         //Get field by id 
-        public static async Task GetMineById(int id, HttpContext context)
+        public static async Task<IResult> GetMineById(int id, ApplicationContext dbContext)
         {
-            List<Mine> mines;
-            using (ApplicationContext db = new ApplicationContext())
-                mines = db.Mine.ToList();
-            Mine mine = mines.FirstOrDefault((f) => f.MineId == id);
-            if (mine != null)
+            return await Task.Run(() =>
             {
-                await context.Response.WriteAsJsonAsync(mine);
-            }
-            else
-            {
-                await context.Response.WriteAsJsonAsync("Mine is null");
-            }
+                Mine mine=dbContext.Mine.First(m => m.MineId == id);
+                MineInfo info = new(dbContext,mine);
+                return Results.Json(info);
+            });
         }
 
         //Create new field 
@@ -70,9 +79,8 @@ namespace Backand.ManagersClasses
             {
                 using (ApplicationContext db = new ApplicationContext())
                 {
-
-                    mines = db.Mine.ToList();
-                    var mine = mines.FirstOrDefault(field => field.MineId == mineData.MineId);
+                    
+                    var mine = db.Mine.FirstOrDefault(field => field.MineId == mineData.MineId);
                     if (mine != null)
                     {
                         mine.Name = mineData.Name;
@@ -90,27 +98,25 @@ namespace Backand.ManagersClasses
         }
 
         //Delete field 
-        public static async void DeleteMine(HttpContext context, int id)
+        public static async Task<IResult> DeleteMine(ApplicationContext dbContext, int id)
         {
             List<Mine> mines;
             // если пользователь найден, удаляем его
-            using (ApplicationContext db = new ApplicationContext())
+            
+            mines = dbContext.Mine.ToList();
+            Mine? mine = mines.FirstOrDefault((f) => f.MineId == id);
+            if (mine != null)
             {
-                mines = db.Mine.ToList();
-                Mine? mine = mines.FirstOrDefault((f) => f.MineId == id);
-                if (mine != null)
-                {
-                    mines.Remove(mine);
-                    await db.SaveChangesAsync();
-                    await context.Response.WriteAsJsonAsync(mine);
+                mines.Remove(mine);
+                return Results.Json(mines);
 
-                }
-                // если не найден, отправляем статусный код и сообщение об ошибке
-                else
-                {
-                    await context.Response.WriteAsJsonAsync("Field doen't exist");
-                }
             }
+            // если не найден, отправляем статусный код и сообщение об ошибке
+            else
+            {
+                return Results.Json(new {Error=true, Message = $"Ошибка! Месторождение с {id} не найдено!" });
+            }
+            
         }
     }
 }

@@ -7,5 +7,6 @@ namespace Backand.DbEntites
         [Key]
         public int ConstructionTypeId { get; set; }
         public string Name { get; set; }
+        public string? DocumentPath { get; set; }
     }
 }

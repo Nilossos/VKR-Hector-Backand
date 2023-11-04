@@ -1,4 +1,5 @@
 ﻿using Backand.FrontendEntities;
+using Backand.FrontendEntities.Links;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -12,9 +13,8 @@ namespace Backand.DbEntites
         [JsonIgnore]
         public NpgsqlTypes.NpgsqlPoint Coordinates { get; set; }
         public Spot Center { get => Coordinates.ToSpot(); }
-        public int SubsidiaryId { get; set; }
         [JsonIgnore]
-        public EntityLink Link { get => new() { Id = MineId, Name = Name}; }
+        public int SubsidiaryId { get; set; }
         //private Spot _center;
     }
 }
