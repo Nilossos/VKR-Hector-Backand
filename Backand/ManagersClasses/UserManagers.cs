@@ -61,33 +61,42 @@ namespace Backand.ManagersClasses
         }
 
         //Update fields
-        public static async Task UpdateUser(HttpContext context)
+        public static async Task UpdateUser(HttpContext context,ApplicationContext db,int id)
         {
-            List<User> list;
-            User UserData = await context.Request.ReadFromJsonAsync<User>();
-            if (UserData != null)
+            User userData = await context.Request.ReadFromJsonAsync<User>();
+            if (userData != null)
             {
-                using (ApplicationContext db = new ApplicationContext())
+                var item = db.User.FirstOrDefault(c => c.UserId == id);
+                if (item != null)
                 {
-                    list = db.User.ToList();
-                    var item = list.FirstOrDefault(c => c.UserTypeId == UserData.UserTypeId);
-                    if (item != null)
-                    {
-                        item.Surname = UserData.Surname;
-                        item.PhoneNumber = UserData.PhoneNumber;
-                        item.Photo = UserData.Photo;
-                        //item.Post = UserData.Post;
-                        item.BirthDate = UserData.BirthDate;
-                        item.FirstName = UserData.FirstName;
-                        item.UserTypeId = UserData.UserTypeId;
-                        item.Token = UserData.Token;
-                        item.Patronymic = UserData.Patronymic;
+                    if (userData.UserTypeId!=0)
+                        item.UserTypeId = userData.UserTypeId;
+                    if (userData.BirthDate != DateTime.MinValue)
+                        item.BirthDate = userData.BirthDate;
+                        
+                    if (userData.PhoneNumber != null)
+                        item.PhoneNumber = userData.PhoneNumber;
+                    if (userData.Photo != null)
+                        item.Photo = userData.Photo;
 
-                        list.Add(item);
-                        await db.SaveChangesAsync();
-                        await context.Response.WriteAsJsonAsync(list);
-                    }
+                    if (userData.FirstName != null)
+                        item.FirstName = userData.FirstName;
+                    if (userData.Surname != null)
+                        item.Surname = userData.Surname;
+                    if (userData.Patronymic != null)
+                        item.Patronymic = userData.Patronymic;
+
+                    if (userData.Login != null)
+                        item.Login = userData.Login;
+                    if (userData.Password != null)
+                        item.Password = GetHashedPassword(userData.Password);
+
+
+
+                    await db.SaveChangesAsync();
+                    await context.Response.WriteAsync("User has updated!.. Trust me, bro");
                 }
+                
             }
             else
             {

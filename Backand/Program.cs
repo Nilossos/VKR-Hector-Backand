@@ -158,9 +158,9 @@ app.MapPut("/user_type", UserTypeManagers.UpdateUserType);
 
 //CRUD FOR USER  
 app.MapGet("/users", UserManagers.GetAllUser);
-app.MapGet("/user/{id}", UserManagers.GetUserById);
-app.MapDelete("/user/{id}", UserManagers.DeleteUser);
+app.MapGet("/user/{id:int}", UserManagers.GetUserById);
+app.MapDelete("/user/{id:int}", UserManagers.DeleteUser);
 app.MapPost("/user", UserManagers.CreateUser);
-app.MapPut("/user", UserManagers.UpdateUser);
+app.MapPatch("/user/{id:int}", UserManagers.UpdateUser);
 
 app.Run();
