@@ -39,7 +39,7 @@ namespace Backand.ManagersClasses
             return await task;
         }
         //Create new object 
-        public static async Task<IResult> CreateConstruction(HttpContext context,ApplicationContext dbContext)
+        public static async Task CreateConstruction(HttpContext context,ApplicationContext dbContext)
         {
             BaseResponse response;
             try
@@ -62,9 +62,11 @@ namespace Backand.ManagersClasses
             }
             catch(Exception exc)
             {
-                response =new(false,exc.ToString());
+                response =new(true,exc.ToString());
             }
-            return Results.Json(response);
+            context.Response.Headers.AccessControlAllowHeaders = "*";
+            context.Response.Headers.AccessControlAllowOrigin="*";
+            await context.Response.WriteAsJsonAsync(response);
         }
 
             //Update object

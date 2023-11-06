@@ -4,13 +4,19 @@ using Microsoft.AspNetCore.Authorization;
 
 
 var builder = WebApplication.CreateBuilder();
-builder.Services.AddCors();
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("*");
+                      });
+});
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 builder.Services.AddDbContext<ApplicationContext>();
 var app = builder.Build();
-app.UseCors(builder => builder.
-                        WithOrigins("http://localhost:3000").
-                        AllowAnyMethod());
+app.UseCors(MyAllowSpecificOrigins);
 
 //CRUD FOR MINES
 app.MapGet("/field", FieldManagers.GetAllMines);

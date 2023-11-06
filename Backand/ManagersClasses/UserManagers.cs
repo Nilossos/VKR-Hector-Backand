@@ -94,7 +94,7 @@ namespace Backand.ManagersClasses
 
 
                     await db.SaveChangesAsync();
-                    await context.Response.WriteAsync("User has updated!.. Trust me, bro");
+                    await context.Response.WriteAsJsonAsync(item);
                 }
                 
             }
