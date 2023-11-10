@@ -64,8 +64,6 @@ namespace Backand.ManagersClasses
             {
                 response =new(true,exc.ToString());
             }
-            context.Response.Headers.AccessControlAllowHeaders = "*";
-            context.Response.Headers.AccessControlAllowOrigin="*";
             await context.Response.WriteAsJsonAsync(response);
         }
 
