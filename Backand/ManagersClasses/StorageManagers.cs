@@ -21,6 +21,7 @@ namespace Backand.ManagersClasses
             List<Storage> list;
             using (ApplicationContext db = new ApplicationContext())
                 list = db.Storage.ToList();
+            
             Storage item = list.FirstOrDefault((f) => f.StorageId == id);
             if (item != null)
             {

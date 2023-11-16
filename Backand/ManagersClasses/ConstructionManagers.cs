@@ -1,6 +1,7 @@
 ﻿using Backand.DbEntites;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backand.ManagersClasses
 {
@@ -28,13 +29,46 @@ namespace Backand.ManagersClasses
             });
             return Results.Json(links);
         }
-        public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext)
+        public static async Task<IResult> GetPlannedConstructions(ApplicationContext dbContext)
+        {
+            return await Task.Run(() =>
+            {
+                var constructions = dbContext.Construction.Where(c => c.ConstructionStateId == BuildState.Planned);
+                var data = constructions.Join(dbContext.Objects,
+                    c => c.ObjectsId,
+                    o => o.ObjectsId,
+                    (c, o) => new {
+                        Construction = new EntityLink() { Id = c.ConstructionId, Name = c.ConstructionName },
+                        Object = new EntityLink() { Id = o.ObjectsId, Name = o.Name },
+                        Mine=new EntityLink()
+                        {
+                            Id=o.MineId,
+                            Name = dbContext.Mine.First(m => m.MineId == o.MineId).Name
+                        }
+                        
+                        
+                    }
+                ) ;
+                return Results.Json(data);
+            });
+        }
+        public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext,HttpContext httpContext)
         {
             var task = Task.Run(() =>
             {
-                Construction construction = dbContext.Construction.First(c => c.ConstructionId == construction_id);
-                ConstructionInfo info = new(construction, dbContext);
-                return Results.Json(info);
+                Construction construction = dbContext.Construction.FirstOrDefault(c => c.ConstructionId == construction_id);
+                if (construction != null)
+                {
+                    ConstructionInfo info = new(construction, dbContext);
+                    return Results.Json(info);
+                }
+                else
+                {
+                    httpContext.Response.StatusCode = 404;
+                    return Results.Json(new BaseResponse(true,$"Сооружение с id {construction_id} не найдено!"));
+                }
+               
+                
             });
             return await task;
         }
@@ -97,27 +131,30 @@ namespace Backand.ManagersClasses
             }
 
         //Delete field 
-        public static async void DeleteConstruction(HttpContext context, int id)
+        public static async Task<IResult> DeleteConstruction(ApplicationContext dbContext,HttpContext context, int id)
         {
-            List<Construction> constructions;
-            using (ApplicationContext db = new ApplicationContext())
+            BaseResponse response;
+            var deletable = await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == id);
+            if (deletable != null)
             {
-                constructions = db.Construction.ToList();
-                Construction construction = constructions.FirstOrDefault((c) => c.ConstructionId == id);
-
-                if (construction != null)
+                try
                 {
-                    constructions.Remove(construction);
-                    await db.SaveChangesAsync();
-                    await context.Response.WriteAsJsonAsync(construction);
-
+                    dbContext.Construction.Remove(deletable);
+                    await dbContext.SaveChangesAsync();
+                    response = new(false, $"Удание сооружения {id} прошло успешно!");
                 }
-                // если не найден, отправляем статусный код и сообщение об ошибке
-                else
+                catch (Exception exc)
                 {
-                    await context.Response.WriteAsJsonAsync("Construction doen't exist");
+                    context.Response.StatusCode = 500;
+                    response = new(true, exc.ToString());
                 }
             }
+            else
+            {
+                context.Response.StatusCode = 404;
+                response = new(true, $"Не найдено сооружения с id {id}!");
+            }
+            return Results.Json(response);
         }
     }
 }

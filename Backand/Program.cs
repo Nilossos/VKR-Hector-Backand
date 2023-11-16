@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 
 
 var builder = WebApplication.CreateBuilder();
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -39,10 +39,11 @@ app.MapPut("/objects", ObjectsManagers.UpdateObject);
 //CRUD FOR CONSTRUCTION 
 app.MapGet("/constructions", ConstructionManagers.GetAllConstructions);
 app.MapGet("/constructions/{object_id:int}", ConstructionManagers.GetConstructionsByObjectId);
+app.MapGet("/constructions/planned", ConstructionManagers.GetPlannedConstructions);
 app.MapGet("/construction/{construction_id:int}", ConstructionManagers.GetConstructionById);
-app.MapDelete("/constructions/{id}", ConstructionManagers.DeleteConstruction);
+app.MapDelete("/construction/{id}", ConstructionManagers.DeleteConstruction);
 app.MapPost("/construction", ConstructionManagers.CreateConstruction);
-app.MapPut("/constructions", ConstructionManagers.UpdateConstruction);
+//app.MapPut("/constructions", ConstructionManagers.UpdateConstruction);
 
 
 //CRUD FOR ConstructionUnitType

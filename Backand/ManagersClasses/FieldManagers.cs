@@ -13,27 +13,25 @@ namespace Backand.ManagersClasses
     }
     public class FieldManagers
     {
-        public static async Task GetTest(HttpContext context)
-        {
-
-        }
         //Get all fields
         public static async Task<IResult> GetAllMines(ApplicationContext context)
         {
            
-            var mines = await Task.Run(() => context.Mine.Select(mine => new MineLink
-            {
-                Id=mine.MineId,
-                Name=mine.Name,
-                Coordination=mine.Center,
-                Objects = context.Objects.Where(o=>o.MineId==mine.MineId).
-                    Select(o => new MapLink 
-                    {
-                        Id=o.ObjectsId,
-                        Name=o.Name, 
-                        Coordination=o.Spot
-                    }).ToArray()
-            }));
+            var mines = await Task.Run(() => context.Mine.
+                Select(
+                    mine => new MineLink
+                {
+                    Id=mine.MineId,
+                    Name=mine.Name,
+                    Coordination=mine.Center,
+                    Objects = context.Objects.Where(o=>o.MineId==mine.MineId).
+                        Select(o => new MapLink 
+                        {
+                            Id=o.ObjectsId,
+                            Name=o.Name, 
+                            Coordination=o.Spot
+                        }).ToArray()
+                }));
             return Results.Json(mines);
         }
 
