@@ -15,6 +15,7 @@ namespace Backand.DbEntites
         public BuildState ConstructionStateId { get; set; }
         [JsonIgnore]
         public EntityLink Link { get => new() { Id = ConstructionId, Name = ConstructionName }; }
+        public Objects? Object { get; set; }
         
     }
 }

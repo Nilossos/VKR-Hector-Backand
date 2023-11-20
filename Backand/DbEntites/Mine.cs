@@ -15,6 +15,7 @@ namespace Backand.DbEntites
         public Spot Center { get => Coordinates.ToSpot(); }
         [JsonIgnore]
         public int SubsidiaryId { get; set; }
-        //private Spot _center;
+        public Subsidiary? Subsidiary { get; set; }
+        public List<Objects> Objects { get; set; } = new(); 
     }
 }

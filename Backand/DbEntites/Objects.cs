@@ -16,5 +16,7 @@ namespace Backand.DbEntites
         public int MineId { get; set; }
         [JsonIgnore]
         public EntityLink Link { get => new() { Id = ObjectsId, Name = this.Name }; }
+        public Mine? Mine { get; set; }
+        public List<Construction> Constructions { get; set; } = new();
     }
 }
