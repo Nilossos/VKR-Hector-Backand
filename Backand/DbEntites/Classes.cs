@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Backand.FrontendEntities.Links;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Backand.DbEntites
 {
@@ -16,6 +18,8 @@ namespace Backand.DbEntites
         [Key]
         public int ConstructionUnitTypeId { get; set;}
         public string Name { get; set; }
+        [JsonIgnore]
+        public EntityLink Link { get => new() { Id = ConstructionUnitTypeId, Name = Name }; }
     }
 
     public class ConstructionUnit
@@ -96,6 +100,8 @@ namespace Backand.DbEntites
     {
         public int TransportTypeId { get; set; }
         public string Name { get; set; }
+        [JsonIgnore]
+        public EntityLink EntityLink { get => new() { Id = TransportTypeId, Name = Name }; }
     }
 
     public class TransportMode
@@ -104,6 +110,7 @@ namespace Backand.DbEntites
         public string Name { get; set; }
         public float AvgSpeed { get; set; }
         public int TransportTypeId { get; set; }
+        public EntityLink Link { get => new() { Id = TransportModeId, Name = Name }; }
     }
 
     public class CoefficientType

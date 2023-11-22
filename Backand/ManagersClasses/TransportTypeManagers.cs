@@ -5,14 +5,10 @@ namespace Backand.ManagersClasses
 {
     public class TransportTypeManagers
     {
-        public static async Task GetAllTransportType(HttpContext context)
+        public static IResult GetAllTransportType(ApplicationContext dbContext)
         {
-            List<TransportType> list;
-            using (ApplicationContext db = new ApplicationContext())
-            {
-                list = db.TransportType.ToList();
-                await context.Response.WriteAsJsonAsync(list);
-            }
+            var links=dbContext.TransportType.Select(tt => tt.EntityLink);
+            return Results.Json(links);
         }
 
         public static async Task GetTransportTypeById(HttpContext context, int id)

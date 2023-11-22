@@ -5,14 +5,10 @@ namespace Backand.ManagersClasses
     public static class TransportModeManagers
     {
 
-        public static async Task GetAllTransportMode(HttpContext context)
+        public static IResult GetAllTransportMode(ApplicationContext dbContext)
         {
-            List<TransportMode> list;
-            using (ApplicationContext db = new ApplicationContext())
-            {
-                list = db.TransportMode.ToList();
-                await context.Response.WriteAsJsonAsync(list);
-            }
+            var res=dbContext.TransportMode.Select(tm => tm.Link);
+            return Results.Json(res);
         }
 
         public static async Task GetTransportModeById(HttpContext context, int id)
@@ -67,7 +63,7 @@ namespace Backand.ManagersClasses
                     {
 
                         item.Name = TransportModeData.Name;
-                        item.AvgSpeed = TransportModeData.AvgSpeed;
+                        //item.AvgSpeed = TransportModeData.AvgSpeed;
                         item.TransportTypeId = TransportModeData.TransportTypeId;
                        
                         list.Add(item);
