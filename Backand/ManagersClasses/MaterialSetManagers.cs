@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using System.Xml.Linq;
 
 namespace Backand.ManagersClasses
@@ -69,11 +69,10 @@ namespace Backand.ManagersClasses
                     if (item != null)
                     {
                        /* item.MaterialSetId = mineData.Name;*/
-                        item.ConstructionId = materialSetData.ConstructionId;
+                        item.ConstructionTypeId = materialSetData.ConstructionTypeId;
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(item);
                     }
-
                     else
                     {
                         await context.Response.WriteAsJsonAsync("Item is null");

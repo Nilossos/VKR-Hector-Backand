@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Backand.ManagersClasses

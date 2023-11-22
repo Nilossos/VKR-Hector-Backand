@@ -1,25 +1,25 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 
 namespace Backand.ManagersClasses
 {
-    public static class DeliveryAbilityManagers
+    public static class DeliveryRegionManagers
     {
-        public static async Task GetAllDeliveryAbility(HttpContext context)
+        public static async Task GetAllDeliveryRegion(HttpContext context)
         {
 
-            List<DeliveryAbility> list;
+            List<DeliveryRegion> list;
             using (ApplicationContext db = new ApplicationContext())
-                list = db.DeliveryAbility.ToList();
+                list = db.DeliveryRegion.ToList();
             await context.Response.WriteAsJsonAsync(list);
         }
 
         //Get field by id 
-        public static async Task GetDeliveryAbilityById(int id, HttpContext context)
+        public static async Task GetDeliveryRegionById(int id, HttpContext context)
         {
-            List<DeliveryAbility> list;
+            List<DeliveryRegion> list;
             using (ApplicationContext db = new ApplicationContext())
-                list = db.DeliveryAbility.ToList();
-            DeliveryAbility item = list.FirstOrDefault((f) => f.DeliveryAbilityId == id);
+                list = db.DeliveryRegion.ToList();
+            DeliveryRegion item = list.FirstOrDefault((f) => f.DeliveryRegionId == id);
             if (item != null)
             {
                 await context.Response.WriteAsJsonAsync(item);
@@ -31,17 +31,17 @@ namespace Backand.ManagersClasses
         }
 
         //Create new field 
-        public static async Task CreateDeliveryAbility(HttpContext context)
+        public static async Task CreateDeliveryRegion(HttpContext context)
         {
-            List<DeliveryAbility> list;
+            List<DeliveryRegion> list;
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.DeliveryAbility.ToList();
-                DeliveryAbility item = await context.Request.ReadFromJsonAsync<DeliveryAbility>();
+                list = db.DeliveryRegion.ToList();
+                DeliveryRegion item = await context.Request.ReadFromJsonAsync<DeliveryRegion>();
 
                 if (item != null)
                 {
-                    db.DeliveryAbility.Add(item);
+                    db.DeliveryRegion.Add(item);
                     await db.SaveChangesAsync(); // Save changes to the database
                     await context.Response.WriteAsJsonAsync(item);
                 }
@@ -53,23 +53,22 @@ namespace Backand.ManagersClasses
         }
 
         //Update fields
-        public static async Task UpdateDeliveryAbility(HttpContext context)
+        public static async Task UpdateDeliveryRegion(HttpContext context)
         {
-            List<DeliveryAbility> list;
-            DeliveryAbility DeliveryAbilityData = await context.Request.ReadFromJsonAsync<DeliveryAbility>();
-            if (DeliveryAbilityData != null)
+            List<DeliveryRegion> list;
+            DeliveryRegion DeliveryRegionData = await context.Request.ReadFromJsonAsync<DeliveryRegion>();
+            if (DeliveryRegionData != null)
             {
                 using (ApplicationContext db = new ApplicationContext())
                 {
-                    list = db.DeliveryAbility.ToList();
-                    var item = list.FirstOrDefault(c => c.DeliveryAbilityId == DeliveryAbilityData.StorageId);
+                    list = db.DeliveryRegion.ToList();
+                    var item = list.FirstOrDefault(c => c.DeliveryRegionId == DeliveryRegionData.DeliveryRegionId);
                     if (item != null)
                     {
                         //item.Id = constructionUnitData.ConstructionUnitTypeId;
 
-                        item.CompanyTransportId = DeliveryAbilityData.CompanyTransportId;
-                        item.StorageId = DeliveryAbilityData.StorageId;
-                        item.ObjectsId = DeliveryAbilityData.ObjectsId;
+                        item.TransportFleet_TransportId = DeliveryRegionData.TransportFleet_TransportId;
+                        item.RegionId = DeliveryRegionData.RegionId;
                         list.Add(item);
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(list);
@@ -82,14 +81,14 @@ namespace Backand.ManagersClasses
             }
         }
         //Delete field 
-        public static async void DeleteDeliveryAbility(HttpContext context, int id)
+        public static async void DeleteDeliveryRegion(HttpContext context, int id)
         {
-            List<DeliveryAbility> list;
+            List<DeliveryRegion> list;
             // если пользователь найден, удаляем его
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.DeliveryAbility.ToList();
-                DeliveryAbility item = list.FirstOrDefault((f) => f.DeliveryAbilityId == id);
+                list = db.DeliveryRegion.ToList();
+                DeliveryRegion item = list.FirstOrDefault((f) => f.DeliveryRegionId == id);
                 if (item != null)
                 {
                     list.Remove(item);

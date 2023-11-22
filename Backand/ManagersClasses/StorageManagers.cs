@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using System.Data;
 using System.Xml.Linq;
 
@@ -70,10 +70,11 @@ namespace Backand.ManagersClasses
                     {
                         //item.Id = constructionUnitData.ConstructionUnitTypeId;
 
+                        item.Name = storageData.Name;
                         item.Address = storageData.Address;
                         item.ManufacturerId = storageData.ManufacturerId;
-                        item.Name = storageData.Name;
-                        item.Coordinates = storageData.Coordinates;
+                        item.RegionId = storageData.RegionId;
+                        
                         list.Add(item);
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(list);

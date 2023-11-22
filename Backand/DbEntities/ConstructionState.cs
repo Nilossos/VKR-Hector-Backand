@@ -1,4 +1,4 @@
-﻿namespace Backand.DbEntites
+﻿namespace Backand.DbEntities
 {
     public enum BuildState
     {
@@ -11,5 +11,7 @@
     {
         public BuildState ConstructionStateId { get; set; }
         public string Name { get; set; }
-    }
+
+		public virtual ICollection<Construction> Constructions { get; set; } = new List<Construction>();
+	}
 }

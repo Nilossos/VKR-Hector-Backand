@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using Backand.FrontendEntities.Links;
 
 namespace Backand.FrontendEntities
@@ -12,7 +12,7 @@ namespace Backand.FrontendEntities
             Name =mine.Name;
             Coordinates = mine.Coordinates;
             var subs =dbContext.Subsidiary.ToArray();
-            Subsidiary company=dbContext.Subsidiary.First(s=>s.SudsidiaryId==mine.SubsidiaryId);
+            Subsidiary company=dbContext.Subsidiary.First(s=>s.SubsidiaryId==mine.SubsidiaryId);
             Subsidiary =company;
         }
     }

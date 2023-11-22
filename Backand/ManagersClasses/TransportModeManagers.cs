@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 
 namespace Backand.ManagersClasses
 {
@@ -67,7 +67,6 @@ namespace Backand.ManagersClasses
                     {
 
                         item.Name = TransportModeData.Name;
-                        item.AvgSpeed = TransportModeData.AvgSpeed;
                         item.TransportTypeId = TransportModeData.TransportTypeId;
                        
                         list.Add(item);

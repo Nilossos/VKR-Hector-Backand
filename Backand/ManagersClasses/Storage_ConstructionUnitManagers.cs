@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 
 namespace Backand.ManagersClasses
 {
@@ -69,8 +69,10 @@ namespace Backand.ManagersClasses
 
                         item.StorageId = Storage_ConstructionUnitData.StorageId;
                         item.ConstructionUnitId = Storage_ConstructionUnitData.ConstructionUnitId;
-                        item.Amount = Storage_ConstructionUnitData.Amount;
-                        item.Price = Storage_ConstructionUnitData.Price;
+                        item.PricePerUnit = Storage_ConstructionUnitData.PricePerUnit;
+                        item.DocumentPath = Storage_ConstructionUnitData.DocumentPath;
+                        item.TablePath = Storage_ConstructionUnitData.TablePath;
+
                         list.Add(item);
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(list);

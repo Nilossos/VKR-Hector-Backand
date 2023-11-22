@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using System.Xml.Linq;
 
 namespace Backand.ManagersClasses
