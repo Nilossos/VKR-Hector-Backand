@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Backand.ManagersClasses
@@ -7,7 +7,7 @@ namespace Backand.ManagersClasses
     {
         public static IResult GetAllTransportType(ApplicationContext dbContext)
         {
-            var links=dbContext.TransportType.Select(tt => tt.EntityLink);
+            var links=dbContext.TransportType.Select(tt => tt.Link);
             return Results.Json(links);
         }
 

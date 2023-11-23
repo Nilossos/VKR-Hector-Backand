@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using Backand.FrontendEntities;
 using System.Security.Cryptography;
 using System.Text;
@@ -76,8 +76,8 @@ namespace Backand.ManagersClasses
                         
                     if (userData.PhoneNumber != null)
                         item.PhoneNumber = userData.PhoneNumber;
-                    if (userData.Photo != null)
-                        item.Photo = userData.Photo;
+                    if (userData.PhotoPath != null)
+                        item.PhotoPath = userData.PhotoPath;
 
                     if (userData.FirstName != null)
                         item.FirstName = userData.FirstName;

@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +47,7 @@ namespace Backand.ManagersClasses
         {
             await dbContext.Entry(mine).Reference(m => m.Subsidiary).LoadAsync();
             Subsidiary subs = mine.Subsidiary;
-            EntityLink sLink = new() { Id = subs.SudsidiaryId, Name = subs.Name };
+            EntityLink sLink = new() { Id = subs.SubsidiaryId, Name = subs.Name };
             return sLink;
         }
         public static async Task<IResult> GetPlannedConstructions(ApplicationContext dbContext)
@@ -72,23 +72,20 @@ namespace Backand.ManagersClasses
         }
         public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext,HttpContext httpContext)
         {
-            var task = Task.Run(() =>
+            Construction construction =await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == construction_id);
+            if (construction != null)
             {
-                Construction construction = dbContext.Construction.FirstOrDefault(c => c.ConstructionId == construction_id);
-                if (construction != null)
-                {
-                    ConstructionInfo info = new(construction, dbContext);
-                    return Results.Json(info);
-                }
-                else
-                {
-                    httpContext.Response.StatusCode = 404;
-                    return Results.Json(new BaseResponse(true,$"Сооружение с id {construction_id} не найдено!"));
-                }
-               
-                
-            });
-            return await task;
+                var cEntry = dbContext.Entry(construction);
+                await cEntry.Reference(c => c.ConstructionState).LoadAsync();
+                await cEntry.Reference(c => c.ConstructionType).LoadAsync();
+                return Results.Json(construction);
+            }
+            else
+            {
+                httpContext.Response.StatusCode = 404;
+                return Results.Json(new BaseResponse(true, $"Сооружение с id {construction_id} не найдено!"));
+            }
+            
         }
         //Create new object 
         public static async Task CreateConstruction(HttpContext context,ApplicationContext dbContext)

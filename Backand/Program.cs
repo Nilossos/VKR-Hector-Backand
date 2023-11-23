@@ -145,18 +145,18 @@ app.MapPost("/coefficient_type", CoefficientTypeManagers.CreateCoefficientType);
 app.MapPut("/coefficient_type", CoefficientTypeManagers.UpdateCoefficientType);
 
 //CRUD FOR COMPANY TRANSPORT
-app.MapGet("/company_transport", CompanyTransportManagers.GetAllCompanyTransport);
-app.MapGet("/company_transport/{id}", CompanyTransportManagers.GetCompanyTransportById);
-app.MapDelete("/company_transport/{id}", CompanyTransportManagers.DeleteCompanyTransport);
-app.MapPost("/company_transport", CompanyTransportManagers.CreateCompanyTransport);
-app.MapPut("/company_transport", CompanyTransportManagers.UpdateCompanyTransport);
+app.MapGet("/company_transportfleet", TransportFleetManagers.GetAllTransportFleet);
+app.MapGet("/company_transportfleet/{id}", TransportFleetManagers.GetTransportFleetById);
+app.MapDelete("/company_transportfleet/{id}", TransportFleetManagers.DeleteTransportFleet);
+app.MapPost("/company_transportfleet", TransportFleetManagers.CreateTransportFleet);
+app.MapPut("/company_transportfleet", TransportFleetManagers.UpdateTransportFleet);
 
 //CRUD FOR DeliveryAbility
-app.MapGet("/delivery_ability", DeliveryAbilityManagers.GetAllDeliveryAbility);
-app.MapGet("/delivery_ability/{id}", DeliveryAbilityManagers.GetDeliveryAbilityById);
-app.MapDelete("/delivery_ability/{id}", DeliveryAbilityManagers.DeleteDeliveryAbility);
-app.MapPost("/delivery_ability", DeliveryAbilityManagers.CreateDeliveryAbility);
-app.MapPut("/delivery_ability", DeliveryAbilityManagers.UpdateDeliveryAbility);
+app.MapGet("/delivery_region", DeliveryRegionManagers.GetAllDeliveryRegion);
+app.MapGet("/delivery_region/{id}", DeliveryRegionManagers.GetDeliveryRegionById);
+app.MapDelete("/delivery_region/{id}", DeliveryRegionManagers.DeleteDeliveryRegion);
+app.MapPost("/delivery_region", DeliveryRegionManagers.CreateDeliveryRegion);
+app.MapPut("/delivery_region", DeliveryRegionManagers.UpdateDeliveryRegion);
 
 //CRUD FOR USER TYPE 
 app.MapGet("/user_type", UserTypeManagers.GetAllUserType);
@@ -174,5 +174,7 @@ app.MapPatch("/user/{id:int}", UserManagers.UpdateUser);
 
 app.MapGet("/construction_types", ConstructionTypeManager.GetTypes);
 app.MapGet("/subsidiaries",SubsidiaryManager.GetSubsidiaries);
+
+app.MapPost("/algorithm", AlgorithmDataManagers.GetFinalCostTime);
 
 app.Run();

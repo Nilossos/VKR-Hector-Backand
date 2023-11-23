@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using Backand.FrontendEntities;
 
 namespace Backand.ManagersClasses

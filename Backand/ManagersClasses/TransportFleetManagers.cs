@@ -1,26 +1,26 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 
 namespace Backand.ManagersClasses
 {
-    public static class CompanyTransportManagers
+    public static class TransportFleetManagers
     {
-        public static async Task GetAllCompanyTransport(HttpContext context)
+        public static async Task GetAllTransportFleet(HttpContext context)
         {
-            List<CompanyTransport> list;
+            List<TransportFleet> list;
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.CompanyTransport.ToList();
+                list = db.TransportFleet.ToList();
                 await context.Response.WriteAsJsonAsync(list);
             }
         }
 
-        public static async Task GetCompanyTransportById(HttpContext context, int id)
+        public static async Task GetTransportFleetById(HttpContext context, int id)
         {
-            List<CompanyTransport> list;
+            List<TransportFleet> list;
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.CompanyTransport.ToList();
-                CompanyTransport item = list.FirstOrDefault((f) => f.CompanyTransportId == id);
+                list = db.TransportFleet.ToList();
+                TransportFleet item = list.FirstOrDefault((f) => f.TransportFleetId == id);
                 if (item != null)
                 {
                     await context.Response.WriteAsJsonAsync(item);
@@ -32,13 +32,13 @@ namespace Backand.ManagersClasses
             }
         }
 
-        public static async Task CreateCompanyTransport(HttpContext context)
+        public static async Task CreateTransportFleet(HttpContext context)
         {
-            List<CompanyTransport> list;
+            List<TransportFleet> list;
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.CompanyTransport.ToList();
-                CompanyTransport item = await context.Request.ReadFromJsonAsync<CompanyTransport>();
+                list = db.TransportFleet.ToList();
+                TransportFleet item = await context.Request.ReadFromJsonAsync<TransportFleet>();
                 if (item != null)
                 {
                     list.Add(item);
@@ -52,25 +52,23 @@ namespace Backand.ManagersClasses
             }
         }
 
-        public static async Task UpdateCompanyTransport(HttpContext context, int id)
+        public static async Task UpdateTransportFleet(HttpContext context, int id)
         {
-            List<CompanyTransport> list;
-            CompanyTransport CompanyTransportData = await context.Request.ReadFromJsonAsync<CompanyTransport>();
-            if (CompanyTransportData != null)
+            List<TransportFleet> list;
+            TransportFleet TransportFleetData = await context.Request.ReadFromJsonAsync<TransportFleet>();
+            if (TransportFleetData != null)
             {
                 using (ApplicationContext db = new ApplicationContext())
                 {
-                    list = db.CompanyTransport.ToList();
-                    CompanyTransport item = list.FirstOrDefault(m => m.CompanyTransportId == CompanyTransportData.CompanyTransportId);
+                    list = db.TransportFleet.ToList();
+                    TransportFleet item = list.FirstOrDefault(m => m.TransportFleetId == TransportFleetData.TransportFleetId);
                     if (item != null)
                     {
 
-                        item.TransportModeId = CompanyTransportData.TransportModeId;
-                        item.CompanyId = CompanyTransportData.CompanyId;
-                        item.BrandName = CompanyTransportData.BrandName;
-                        item.ModelName = CompanyTransportData.ModelName;
-                        item.CoefficientTypeId = CompanyTransportData.CoefficientTypeId;
-                        item.CoefficientValue = CompanyTransportData.CoefficientValue;
+                        item.Name = TransportFleetData.Name;
+						item.Address = TransportFleetData.Address;
+						item.CompanyId = TransportFleetData.CompanyId;
+                        item.RegionId = TransportFleetData.RegionId;
                         list.Add(item);
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(list);
@@ -86,13 +84,13 @@ namespace Backand.ManagersClasses
                 await context.Response.WriteAsJsonAsync("Manufacture is null");
             }
         }
-        public static async Task DeleteCompanyTransport(HttpContext context, int id)
+        public static async Task DeleteTransportFleet(HttpContext context, int id)
         {
-            List<CompanyTransport> list;
+            List<TransportFleet> list;
             using (ApplicationContext db = new ApplicationContext())
             {
-                list = db.CompanyTransport.ToList();
-                var item = list.FirstOrDefault(m => m.CompanyTransportId == id);
+                list = db.TransportFleet.ToList();
+                var item = list.FirstOrDefault(m => m.TransportFleetId == id);
                 if (item != null)
                 {
                     list.Remove(item);

@@ -1,4 +1,4 @@
-﻿using Backand.DbEntites;
+﻿using Backand.DbEntities;
 using System.Xml.Linq;
 
 namespace Backand.ManagersClasses
@@ -66,8 +66,9 @@ namespace Backand.ManagersClasses
                     var item = list.FirstOrDefault(c => c.ConstructionUnitId == constructionUnitData.ConstructionUnitId);
                     if (item != null)
                     {
+                        item.Name = constructionUnitData.Name;
                         item.ConstructionUnitTypeId = constructionUnitData.ConstructionUnitTypeId;
-                        item.MeasuringUnit = constructionUnitData.MeasuringUnit;
+                        item.MeasureUnit = constructionUnitData.MeasureUnit;
                         list.Add(item);
                         await db.SaveChangesAsync();
                         await context.Response.WriteAsJsonAsync(list);
