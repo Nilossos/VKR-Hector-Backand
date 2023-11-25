@@ -21,9 +21,13 @@ namespace Backand.DbEntities
 
 		[JsonIgnore]
 		public int? SubsidiaryId { get; set; }
-
+		[JsonIgnore]
+		public MineLink Link { get => new() { 
+			Id = MineId, Name = Name, Coordination = Center, Objects = Objects.Select(o=>o.MapLink).ToArray()
+		};}
+		[JsonIgnore]
 		public virtual ICollection<Objects> Objects { get; set; } = new List<Objects>();
 
-		public virtual Subsidiary? Subsidiary { get; set; }
+		public Subsidiary? Subsidiary { get; set; }
 	}
 }

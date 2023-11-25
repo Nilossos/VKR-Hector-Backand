@@ -1,4 +1,6 @@
-﻿namespace Backand.DbEntities
+﻿using System.Text.Json.Serialization;
+
+namespace Backand.DbEntities
 {
     public enum BuildState
     {
@@ -11,6 +13,7 @@
     {
         public BuildState ConstructionStateId { get; set; }
         public string Name { get; set; }
+        [JsonIgnore]
 
 		public virtual ICollection<Construction> Constructions { get; set; } = new List<Construction>();
 	}

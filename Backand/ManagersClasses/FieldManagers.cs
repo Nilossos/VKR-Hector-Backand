@@ -20,30 +20,27 @@ namespace Backand.ManagersClasses
             var mines = await Task.Run(() => context.Mine.
                 Select(
                     mine => new MineLink
-                {
-                    Id=mine.MineId,
-                    Name=mine.Name,
-                    Coordination=mine.Center,
-                    Objects = context.Objects.Where(o=>o.MineId==mine.MineId).
-                        Select(o => new MapLink 
-                        {
-                            Id=o.ObjectsId,
-                            Name=o.Name, 
-                            Coordination=o.Spot
-                        }).ToArray()
-                }));
+                    {
+                        Id=mine.MineId,
+                        Name=mine.Name,
+                        Coordination=mine.Center,
+                        Objects = context.Objects.Where(o=>o.MineId==mine.MineId).
+                            Select(o => new MapLink 
+                            {
+                                Id=o.ObjectsId,
+                                Name=o.Name, 
+                                Coordination=o.Spot
+                            }).ToArray()
+                    }));
             return Results.Json(mines);
         }
 
         //Get field by id 
         public static async Task<IResult> GetMineById(int id, ApplicationContext dbContext)
         {
-            return await Task.Run(() =>
-            {
-                Mine mine=dbContext.Mine.First(m => m.MineId == id);
-                MineInfo info = new(dbContext,mine);
-                return Results.Json(info);
-            });
+            Mine mine = dbContext.Mine.First(m => m.MineId == id);
+            await dbContext.Entry(mine).Reference(m => m.Subsidiary).LoadAsync();
+            return Results.Json(mine);
         }
 
         //Create new field 

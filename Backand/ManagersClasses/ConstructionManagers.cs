@@ -29,48 +29,63 @@ namespace Backand.ManagersClasses
             });
             return Results.Json(links);
         }
+        private static async Task<(EntityLink,Objects)> GetObjectsLink(ApplicationContext dbContext,Construction c)
+        {
+            await dbContext.Entry(c).Reference(c => c.Object).LoadAsync();
+            Objects bash = c.Object;
+            EntityLink bLink = new() { Id = bash.ObjectsId, Name = bash.Name };
+            return (bLink, bash);
+        }
+        private static async Task<(EntityLink,Mine)> GetMineLink(ApplicationContext dbContext,Objects bash)
+        {
+            await dbContext.Entry(bash).Reference(b => b.Mine).LoadAsync();
+            Mine mine = bash.Mine;
+            EntityLink mLink = new() { Id = mine.MineId, Name = mine.Name };
+            return (mLink, mine);
+        }
+        private static async Task<EntityLink> GetSubsidiaryLink(ApplicationContext dbContext, Mine mine)
+        {
+            await dbContext.Entry(mine).Reference(m => m.Subsidiary).LoadAsync();
+            Subsidiary subs = mine.Subsidiary;
+            EntityLink sLink = new() { Id = subs.SubsidiaryId, Name = subs.Name };
+            return sLink;
+        }
         public static async Task<IResult> GetPlannedConstructions(ApplicationContext dbContext)
         {
-            return await Task.Run(() =>
+            var constructions = await dbContext.Construction.
+                                        Where(c => c.ConstructionStateId == BuildState.Planned).
+                                        ToListAsync();
+            List<ConstructionTable> tables = new();
+            foreach (var c in constructions)
             {
-                var constructions = dbContext.Construction.Where(c => c.ConstructionStateId == BuildState.Planned);
-                var data = constructions.Join(dbContext.Objects,
-                    c => c.ObjectsId,
-                    o => o.ObjectsId,
-                    (c, o) => new {
-                        Construction = new EntityLink() { Id = c.ConstructionId, Name = c.ConstructionName },
-                        Object = new EntityLink() { Id = o.ObjectsId, Name = o.Name },
-                        Mine=new EntityLink()
-                        {
-                            Id=o.MineId,
-                            Name = dbContext.Mine.First(m => m.MineId == o.MineId).Name
-                        }
-                        
-                        
-                    }
-                ) ;
-                return Results.Json(data);
-            });
+                EntityLink cLink = new() {Id=c.ConstructionId, Name=c.ConstructionName };
+
+                var (bLink, bash) = await GetObjectsLink(dbContext,c);
+                var (mLink, mine) = await GetMineLink(dbContext, bash);
+                var sLink = await GetSubsidiaryLink(dbContext,mine);
+                
+                ConstructionTable table = new(cLink,bLink,mLink,sLink);
+                tables.Add(table);
+            }
+            
+            return Results.Json(tables);
         }
         public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext,HttpContext httpContext)
         {
-            var task = Task.Run(() =>
+            Construction construction =await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == construction_id);
+            if (construction != null)
             {
-                Construction construction = dbContext.Construction.FirstOrDefault(c => c.ConstructionId == construction_id);
-                if (construction != null)
-                {
-                    ConstructionInfo info = new(construction, dbContext);
-                    return Results.Json(info);
-                }
-                else
-                {
-                    httpContext.Response.StatusCode = 404;
-                    return Results.Json(new BaseResponse(true,$"Сооружение с id {construction_id} не найдено!"));
-                }
-               
-                
-            });
-            return await task;
+                var cEntry = dbContext.Entry(construction);
+                await cEntry.Reference(c => c.ConstructionState).LoadAsync();
+                await cEntry.Reference(c => c.ConstructionType).LoadAsync();
+                return Results.Json(construction);
+            }
+            else
+            {
+                httpContext.Response.StatusCode = 404;
+                return Results.Json(new BaseResponse(true, $"Сооружение с id {construction_id} не найдено!"));
+            }
+            
         }
         //Create new object 
         public static async Task CreateConstruction(HttpContext context,ApplicationContext dbContext)

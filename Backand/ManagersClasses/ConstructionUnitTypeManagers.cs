@@ -1,4 +1,6 @@
-﻿using Backand.DbEntities;
+using Backand.DbEntites;
+using Backand.FrontendEntities.Links;
+using Backand.DbEntities;
 using System.Xml.Linq;
 
 namespace Backand.ManagersClasses
@@ -8,9 +10,9 @@ namespace Backand.ManagersClasses
         public static async Task GetAllConstructionUnitType(HttpContext context)
         {
 
-            List<ConstructionUnitType> list;
+            List<EntityLink> list;
             using (ApplicationContext db = new ApplicationContext())
-                list = db.ConstructionUnitType.ToList();
+                list = db.ConstructionUnitType.Select(cut=>cut.Link).ToList();
             await context.Response.WriteAsJsonAsync(list);
         }
 

@@ -32,5 +32,6 @@ namespace Backand.DbEntities
 
 		[JsonIgnore]
 		public EntityLink Link { get => new() { Id = ObjectsId, Name = this.Name }; }
+		public MapLink MapLink { get => new() { Id = ObjectsId, Name = Name, Coordination = Spot }; }
 	}
 }

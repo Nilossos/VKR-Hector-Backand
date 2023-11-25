@@ -1,5 +1,6 @@
 ﻿using Backand.DbEntities;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities
 {
@@ -10,9 +11,10 @@ namespace Backand.DbEntities
 		public string Name { get; set; }
 
 		public string? DocumentPath { get; set; }
+		[JsonIgnore]
 
 		public virtual ICollection<Construction> Constructions { get; set; } = new List<Construction>();
-
+		[JsonIgnore]
 		public virtual ICollection<MaterialSet> MaterialSets { get; set; } = new List<MaterialSet>();
 	}
 }
