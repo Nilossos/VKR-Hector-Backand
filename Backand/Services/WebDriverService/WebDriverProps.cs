@@ -1,15 +1,15 @@
 ﻿namespace Backand.Services.WebDriverServiceSpace
 {
+
     public readonly struct WebDriverProps
     {
-        public string DriverPath { get; }
+        
         public WebDriverType DriverType { get; }
         public string HtmlPath { get; }
         public string YamapsScriptLink { get; }
         public WebDriverProps(IConfiguration config)
         {
             IConfiguration custom = config.GetSection("Custom");
-            DriverPath = custom["Engine:driverPath"]??"";
             HtmlPath = custom["distanceHtml"]??"";
             DriverType = WDTypesTable.Table[custom["Engine:type"]];
             YamapsScriptLink = GetScriptLink(config);

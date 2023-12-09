@@ -14,7 +14,7 @@ namespace Backand.Services.WebDriverServiceSpace
             html_path = $"file:///{html_path.Replace("\\", "//")}";
             ChromeOptions options = new();
             options.AddArgument("--headless");
-            ChromeDriver chrome = new(props.DriverPath, options) { Url = html_path };
+            ChromeDriver chrome = new(options) { Url = html_path };
             IWebElement scriptElem = chrome.FindElement(By.Id("yamaps-root-script"));
             string src = props.YamapsScriptLink;
             chrome.ExecuteScript($"arguments[0].setAttribute('src','{src}')", scriptElem);
