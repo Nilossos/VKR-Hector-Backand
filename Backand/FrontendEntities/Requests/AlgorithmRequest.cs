@@ -32,12 +32,12 @@ namespace Backand.FrontendEntities.Requests
 
 	public class CertainLogists
 	{
-		public List<string> Names { get; init; }
+		public List<int> Ids { get; init; }
 	}
 
 	public class CertainManufacturers
 	{
-		public List<string> Names { get; init; }
+		public List<int> Ids { get; init; }
 	}
 
 	public class ConstructionOption

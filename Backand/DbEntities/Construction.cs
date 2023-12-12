@@ -12,7 +12,7 @@ namespace Backand.DbEntities
 
 		public int ObjectsId { get; set; }
 		[JsonIgnore]
-		public int? ConstructionTypeId { get; set; }
+		public int ConstructionTypeId { get; set; }
 
 		public string ConstructionName { get; set; }
 		[JsonIgnore]
