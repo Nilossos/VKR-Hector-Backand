@@ -1,9 +1,15 @@
 using Backand;
+using Backand.FrontendEntities;
 using Backand.ManagersClasses;
+using Backand.Services;
+using Backand.Services.WebDriverServiceSpace;
 using Microsoft.AspNetCore.Authorization;
-
+using static Newtonsoft.Json.JsonConvert;
 
 var builder = WebApplication.CreateBuilder();
+builder.Configuration.AddJsonFile("external_services.json");
+builder.Services.AddWebDriverService();
+builder.Services.AddDistanceService();
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
@@ -177,4 +183,19 @@ app.MapGet("/subsidiaries",SubsidiaryManager.GetSubsidiaries);
 
 app.MapPost("/algorithm", AlgorithmDataManagers.CalculateOrderCostTime);
 
+app.MapGet("/distance", async (DistanceService ds,HttpContext context) =>
+{
+    try
+    {
+        var routes_str = context.Request.Query["routes"].ToString().Replace(" ", "");
+        var routes = DeserializeObject<double[][]>(routes_str);
+        var dist = await ds.GetDistance(routes);
+        return Results.Json(dist);
+    }
+    catch (Exception e)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        return Results.Json(new BaseResponse(true, e.Message));
+    }
+});
 app.Run();
