@@ -4,7 +4,7 @@ using static Newtonsoft.Json.JsonConvert;
 
 namespace Backand.Services
 {
-    internal class DistanceService
+    public class DistanceService
     {
         IWebElement input;
         IWebElement output;

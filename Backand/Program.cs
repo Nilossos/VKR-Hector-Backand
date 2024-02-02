@@ -1,13 +1,15 @@
 using Backand;
+using Backand.DbEntities;
 using Backand.FrontendEntities;
 using Backand.ManagersClasses;
 using Backand.Services;
 using Backand.Services.WebDriverServiceSpace;
 using Microsoft.AspNetCore.Authorization;
+using OpenQA.Selenium.DevTools.V118.Autofill;
 using static Newtonsoft.Json.JsonConvert;
 
 var builder = WebApplication.CreateBuilder();
-builder.Configuration.AddJsonFile("external_services.json");
+//builder.Configuration.AddJsonFile("external_services.json");
 builder.Services.AddWebDriverService();
 builder.Services.AddDistanceService();
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -198,4 +200,10 @@ app.MapGet("/distance", async (DistanceService ds,HttpContext context) =>
         return Results.Json(new BaseResponse(true, e.Message));
     }
 });
+
+var fields = typeof(StorageToObjectsDistance).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+foreach (var field in fields)
+    Console.WriteLine(field);
+
 app.Run();

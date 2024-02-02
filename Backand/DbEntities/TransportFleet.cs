@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Backand.FrontendEntities;
+using NpgsqlTypes;
+using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities;
 
@@ -14,6 +15,11 @@ public partial class TransportFleet
     public int? CompanyId { get; set; }
 
     public int? RegionId { get; set; }
+
+    [JsonIgnore]
+    public NpgsqlPoint Coordinates { get; set; }
+
+    public Spot Spot { get => Coordinates.ToSpot(); }
 
     public virtual Company? Company { get; set; }
 

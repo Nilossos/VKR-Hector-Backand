@@ -55,7 +55,11 @@ namespace Backand
 
 		public virtual DbSet<Storage_ConstructionUnit> Storage_ConstructionUnit { get; set; }
 
-		public virtual DbSet<Subsidiary> Subsidiary { get; set; }
+        public virtual DbSet<StorageToObjectsDistance> StorageToObjectDistance { get; set; }
+
+        public virtual DbSet<StorageToTransportFleetDistance> StorageToTransportFleetDistance { get; set; }
+
+        public virtual DbSet<Subsidiary> Subsidiary { get; set; }
 
 		public virtual DbSet<Transport> Transport { get; set; }
 
@@ -63,7 +67,9 @@ namespace Backand
 
 		public virtual DbSet<TransportFleet_Transport> TransportFleet_Transport { get; set; }
 
-		public virtual DbSet<TransportMode> TransportMode { get; set; }
+        public virtual DbSet<TransportFleetToObjectsDistance> TransportFleetToObjectsDistance { get; set; }
+
+        public virtual DbSet<TransportMode> TransportMode { get; set; }
 
 		public virtual DbSet<TransportType> TransportType { get; set; }
 
