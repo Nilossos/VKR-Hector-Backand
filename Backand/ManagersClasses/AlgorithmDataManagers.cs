@@ -3,18 +3,25 @@ using Backand.DbEntities;
 using Backand.FrontendEntities.Requests;
 using Microsoft.EntityFrameworkCore;
 using Backand.Services;
-using Microsoft.Extensions.Hosting;
 using Backand.FrontendEntities;
-using System.Collections;
 
 namespace Backand.ManagersClasses
 {
 	public class AlgorithmDataManagers
 	{
+		public static async Task<decimal> GetMissingDistance(MissingDistance missingDistance, DistanceService distanceService)
+		{
+			double[] coord1 = new double[] { missingDistance.Coordinates1.X, missingDistance.Coordinates1.Y };
+			double[] coord2 = new double[] { missingDistance.Coordinates2.X, missingDistance.Coordinates2.Y };
+			double[][] routes = new double[][] { coord1, coord2 };
+
+			return Convert.ToDecimal(await distanceService.GetDistance(routes));
+		}
+
 		public static async Task<List<StorageToObjectsDistance>> GetStorageToObjectsDistancesAsync(ApplicationContext dbContext, DistanceService distanceService)
 		{
-			var storages = await dbContext.Storage.Select(s => new { Id = s.StorageId, s.Coordinates }).ToArrayAsync();
-			var objectss = await dbContext.Objects.Select(s => new { Id = s.ObjectsId, s.Coordinates }).ToArrayAsync();
+			var storages = await dbContext.Storage.Select(s => new UnitIdWithCoordinates { Id = s.StorageId, Coordinates = s.Coordinates }).ToArrayAsync();
+			var objectss = await dbContext.Objects.Select(s => new UnitIdWithCoordinates { Id = s.ObjectsId, Coordinates = s.Coordinates }).ToArrayAsync();
 
 			List<StorageToObjectsDistance> distances = await dbContext.StorageToObjectDistance.ToListAsync();
 			List<MissingDistance> missingDistances = new();
@@ -32,26 +39,15 @@ namespace Backand.ManagersClasses
 							Index1 = storage.Id,
 							Index2 = objects.Id,
 							Coordinates1 = storage.Coordinates,
-							Coordinates2 = storage.Coordinates
+							Coordinates2 = objects.Coordinates
 						});
 					}
 				}
-			double[][] routes;
 
 			for (int i = 0; i < missingDistances.Count; i++)
 			{
-				double[] coord1 = new double[] { missingDistances[i].Coordinates1.X, missingDistances[i].Coordinates1.Y };
-				double[] coord2 = new double[] { missingDistances[i].Coordinates2.X, missingDistances[i].Coordinates2.Y };
-				routes = new double[][] { coord1, coord2 };
+				decimal distance = await GetMissingDistance(missingDistances[i], distanceService);
 
-				decimal distance = Convert.ToDecimal(await distanceService.GetDistance(routes));
-
-				distances.Add(new StorageToObjectsDistance
-				{
-					StorageId = missingDistances[i].Index1,
-					ObjectsId = missingDistances[i].Index2,
-					Distance = distance
-				});
 				distancesToDbAdd.Add(new StorageToObjectsDistance
 				{
 					StorageId = missingDistances[i].Index1,
@@ -59,6 +55,9 @@ namespace Backand.ManagersClasses
 					Distance = distance
 				});
 			}
+
+			distances.AddRange(distancesToDbAdd);
+
 			await dbContext.StorageToObjectDistance.AddRangeAsync(distancesToDbAdd);
 			await dbContext.SaveChangesAsync();
 			return distances;
@@ -89,22 +88,10 @@ namespace Backand.ManagersClasses
 						});
 					}
 				}
-			double[][] routes;
 
 			for (int i = 0; i < missingDistances.Count; i++)
 			{
-				double[] coord1 = new double[] { missingDistances[i].Coordinates1.X, missingDistances[i].Coordinates1.Y };
-				double[] coord2 = new double[] { missingDistances[i].Coordinates2.X, missingDistances[i].Coordinates2.Y };
-				routes = new double[][] { coord1, coord2 };
-
-				decimal distance = Convert.ToDecimal(await distanceService.GetDistance(routes));
-
-				distances.Add(new StorageToTransportFleetDistance
-				{
-					StorageId = missingDistances[i].Index1,
-					TransportFleetId = missingDistances[i].Index2,
-					Distance = distance
-				});
+				decimal distance = await GetMissingDistance(missingDistances[i], distanceService);
 
 				distancesToDbAdd.Add(new StorageToTransportFleetDistance
 				{
@@ -113,11 +100,56 @@ namespace Backand.ManagersClasses
 					Distance = distance
 				});
 			}
+
+			distances.AddRange(distancesToDbAdd);
+
 			await dbContext.StorageToTransportFleetDistance.AddRangeAsync(distancesToDbAdd);
 			await dbContext.SaveChangesAsync();
 			return distances;
 		}
 
+		public static async Task<List<TransportFleetToObjectsDistance>> GetTransportFleetToObjectsDistancesAsync(ApplicationContext dbContext, DistanceService distanceService)
+		{
+			var transportFleets = await dbContext.TransportFleet.Select(s => new UnitIdWithCoordinates { Id = s.TransportFleetId, Coordinates = s.Coordinates }).ToArrayAsync();
+			var objectss = await dbContext.Objects.Select(s => new UnitIdWithCoordinates { Id = s.ObjectsId, Coordinates = s.Coordinates }).ToArrayAsync();
+
+			List<TransportFleetToObjectsDistance> distances = await dbContext.TransportFleetToObjectsDistance.ToListAsync();
+			List<MissingDistance> missingDistances = new();
+			List<TransportFleetToObjectsDistance> distancesToDbAdd = new();
+
+			foreach (var transportFleet in transportFleets)
+				foreach (var objects in objectss)
+				{
+					int? index = distances.FindIndex(d => d.TransportFleetId == transportFleet.Id && d.TransportFleetId == transportFleet.Id);
+
+					if (index is not null)
+						missingDistances.Add(new MissingDistance
+						{
+							Index1 = transportFleet.Id,
+							Index2 = objects.Id,
+							Coordinates1 = transportFleet.Coordinates,
+							Coordinates2 = objects.Coordinates
+						});
+				}
+
+			for (int i = 0; i < missingDistances.Count; i++)
+			{
+				decimal distance = await GetMissingDistance(missingDistances[i], distanceService);
+
+				distancesToDbAdd.Add(new TransportFleetToObjectsDistance
+				{
+					TransportFleetId = missingDistances[i].Index1,
+					ObjectsId = missingDistances[i].Index2,
+					Distance = distance
+				});
+			}
+
+			distances.AddRange(distancesToDbAdd);
+
+			await dbContext.TransportFleetToObjectsDistance.AddRangeAsync(distancesToDbAdd);
+			await dbContext.SaveChangesAsync();
+			return distances;
+		}
 
 		//public static async Task<List<T>> GetMissingDistances<T>(UnitIdWithCoordinates[] distances1, UnitIdWithCoordinates[] distances2, List<T> distances, DistanceService distanceService) where T : class, new()
 		//{
@@ -165,59 +197,6 @@ namespace Backand.ManagersClasses
 		//		});
 		//	}
 		//}
-
-		public static async Task<List<TransportFleetToObjectsDistance>> GetTransportFleetToObjectsDistancesAsync(ApplicationContext dbContext, DistanceService distanceService)
-		{
-			var transportFleets = await dbContext.TransportFleet.Select(s => new { Id = s.TransportFleetId, s.Coordinates }).ToArrayAsync();
-			var objectss = await dbContext.Objects.Select(s => new { Id = s.ObjectsId, s.Coordinates }).ToArrayAsync();
-
-			List<TransportFleetToObjectsDistance> distances = await dbContext.TransportFleetToObjectsDistance.ToListAsync();
-			List<MissingDistance> missingDistances = new();
-			List<TransportFleetToObjectsDistance> distancesToDbAdd = new();
-
-			foreach (var transportFleet in transportFleets)
-				foreach (var objects in objectss)
-				{
-					int? index = distances.FindIndex(d => d.TransportFleetId == transportFleet.Id && d.TransportFleetId == transportFleet.Id);
-
-					if (index is not null)
-					{
-						missingDistances.Add(new MissingDistance
-						{
-							Index1 = transportFleet.Id,
-							Index2 = objects.Id,
-							Coordinates1 = transportFleet.Coordinates,
-							Coordinates2 = objects.Coordinates
-						});
-					}
-				}
-			double[][] routes;
-
-			for (int i = 0; i < missingDistances.Count; i++)
-			{
-				double[] coord1 = new double[] { missingDistances[i].Coordinates1.X, missingDistances[i].Coordinates1.Y };
-				double[] coord2 = new double[] { missingDistances[i].Coordinates2.X, missingDistances[i].Coordinates2.Y };
-				routes = new double[][] { coord1, coord2 };
-
-				decimal distance = Convert.ToDecimal(await distanceService.GetDistance(routes));
-
-				distances.Add(new TransportFleetToObjectsDistance
-				{
-					TransportFleetId = missingDistances[i].Index1,
-					ObjectsId = missingDistances[i].Index2,
-					Distance = distance
-				});
-				distancesToDbAdd.Add(new TransportFleetToObjectsDistance
-				{
-					TransportFleetId = missingDistances[i].Index1,
-					ObjectsId = missingDistances[i].Index2,
-					Distance = distance
-				});
-			}
-			await dbContext.TransportFleetToObjectsDistance.AddRangeAsync(distancesToDbAdd);
-			await dbContext.SaveChangesAsync();
-			return distances;
-		}
 
 		public static async Task<List<StorageMaterial>> GetStoragesMaterialsAsync(ApplicationContext dbContext)
 		{
@@ -337,50 +316,92 @@ namespace Backand.ManagersClasses
 			List<StorageMaterial> storagesMaterialsAll = await GetStoragesMaterialsAsync(dbContext);
 			List<StorageToObjectsDistance> storageToObjectsDistances = await GetStorageToObjectsDistancesAsync(dbContext, distanceService);
 			List<StorageToTransportFleetDistance> storageToTransportFleetDistances = await GetStorageToTransportFleetDistancesAsync(dbContext, distanceService);
-			//List<TransportFleetToObjectsDistance> transportFleetToObjectsDistance = await GetTransportFleetToObjectsDistancesAsync(dbContext, distanceService);
-			return new AlgorithmData(constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistances);
+			List<TransportFleetToObjectsDistance> transportFleetToObjectsDistance = await GetTransportFleetToObjectsDistancesAsync(dbContext, distanceService);
+			return new AlgorithmData(constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistances, transportFleetToObjectsDistance);
 		}
 
-		public static List<DeliveryParamsUnit> GetDeliveryCostsAndTimes(AlgorithmData data, ConstructionOption constructionOption, Objects? objectsToDeliver)
+		//public static List<DeliveryParamsUnit> GetDeliveryCostsAndTimes(AlgorithmData data, ConstructionOption constructionOption, Objects? objectsToDeliver)
+		//{
+		//	List<DeliveryParamsUnit> deliveryCosts = new();
+		//	List<TransportOnFleetWithRegions> transportsOnFleets = FilterFleetsByLogisticCompanies(data.transportsOnFleetsAll, constructionOption);
+		//	Dictionary<int, decimal?> storageToCertainObjectsDistances = GetStorageToCertainObjectsDistances(data.storageToObjectsDistances, objectsToDeliver);
+
+		//	//цикл, в котором рассчитываются стоимости доставок от склада до объекта
+		//	for (int transportFleetIndex = 0; transportFleetIndex < data.transportFleets.Count; transportFleetIndex++)
+		//	{
+		//		int transportFleetId = data.transportFleets[transportFleetIndex].TransportFleetId;
+		//		var transportsOnFleet = FilterTransportFromTransportFleetByType(transportsOnFleets, transportFleetId, TransportTypeValue.Ground);
+
+		//		transportsOnFleet.Sort((t1, t2) => t2.TransportOnFleet.AverageSpeed.CompareTo(t1.TransportOnFleet.AverageSpeed));
+
+		//		for (int storageIndex = 0; storageIndex < data.storages.Count; storageIndex++)
+		//		{
+		//			int storageId = data.storages[storageIndex].StorageId;
+
+		//			foreach (var transport in transportsOnFleet)
+		//				//доставляет ли транспорт в этот регион?
+		//				if (transport.RegionIds.Contains(data.storages[storageIndex].RegionId) && transport.RegionIds.Contains(objectsToDeliver!.RegionId))
+		//				{
+		//					decimal distance = (data.storageToTransportFleetDistances.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.StorageId == storageId)!.Distance + storageToCertainObjectsDistances[storageId]) ?? decimal.MaxValue;
+
+		//					deliveryCosts.Add(new DeliveryParamsUnit
+		//					{
+		//						TransportFleetId = transportFleetId,
+		//						TransportOnFleet = transport.TransportOnFleet,
+		//						StorageId = storageId,
+		//						Storage = data.storages[storageIndex],
+		//						Cost = (decimal)transport.TransportOnFleet!.CoefficientValue * distance,
+		//						DeliveryTime = distance / (decimal)transport.TransportOnFleet!.AverageSpeed,
+		//						Distance = distance
+		//					});
+		//					break;
+		//				}
+		//		}
+		//	}
+		//	SortCostAndTimeListByFilterMethod(deliveryCosts, constructionOption.Filter.FilterMethod);
+		//	return deliveryCosts;
+		//}
+
+		public static List<DeliveryParamsUnit> GetDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, Objects? objectsToDeliver)
 		{
-			List<DeliveryParamsUnit> deliveryCosts = new();
+			List<DeliveryParamsUnit> deliveryVariants = new();
 			List<TransportOnFleetWithRegions> transportsOnFleets = FilterFleetsByLogisticCompanies(data.transportsOnFleetsAll, constructionOption);
 
-			//TODO: добавить фильтрацию для дистанций парков транспорта 
-			Dictionary<int, decimal?> storageToCertainObjectsDistances = data.storageToObjectsDistances
-				.Where(d => d.ObjectsId == objectsToDeliver!.ObjectsId)
-				.ToDictionary(d => d.StorageId, d => d.Distance);
+			AddDeliveryVariantsForGroundTransport(data, objectsToDeliver, transportsOnFleets, deliveryVariants);
+			AddDeliveryVariantsForAirTransport(data, objectsToDeliver, transportsOnFleets, deliveryVariants);
+			SortCostAndTimeListByFilterMethod(deliveryVariants, constructionOption.Filter.FilterMethod);
 
-			//цикл, в котором рассчитываются стоимости доставок от склада до объекта
-			for (int transportFleetIndex = 0; transportFleetIndex < data.transportFleets.Count; transportFleetIndex++)
+			return deliveryVariants;
+		}
+
+		public static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, List<DeliveryParamsUnit> deliveryVariants)
+		{
+			Dictionary<int, decimal?> storageToCertainObjectsDistances = GetStorageToCertainObjectsDistances(data.storageToObjectsDistances, objectsToDeliver);
+
+			//цикл, в котором рассчитываются стоимости доставок от складов до объекта
+			foreach (var transportFleet in data.transportFleets)
 			{
-				int transportFleetId = data.transportFleets[transportFleetIndex].TransportFleetId;
-
-				//выбираем транспорт из парка транспорта
-				var transportsOnFleet = transportsOnFleets
-					.Where(
-						t => t.TransportOnFleet.TransportFleet.TransportFleetId == data.transportFleets[transportFleetIndex].TransportFleetId
-						&& t.TransportOnFleet.TransportTypeId == 2 //наземный транспорт
-					).ToList();
+				int transportFleetId = transportFleet.TransportFleetId;
+				var transportsOnFleet = FilterTransportFromTransportFleetByType(transportsOnFleets, transportFleetId, TransportTypeValue.Ground);
 
 				transportsOnFleet.Sort((t1, t2) => t2.TransportOnFleet.AverageSpeed.CompareTo(t1.TransportOnFleet.AverageSpeed));
 
-				for (int storageIndex = 0; storageIndex < data.storages.Count; storageIndex++)
+				foreach (var storage in data.storages)
 				{
-					int storageId = data.storages[storageIndex].StorageId;
+					int storageId = storage.StorageId;
 
 					foreach (var transport in transportsOnFleet)
 						//доставляет ли транспорт в этот регион?
-						if (transport.RegionIds.Contains(data.storages[storageIndex].RegionId) && transport.RegionIds.Contains(objectsToDeliver!.RegionId))
+						if (transport.RegionIds.Contains(storage.RegionId) && transport.RegionIds.Contains(objectsToDeliver!.RegionId))
 						{
 							decimal distance = (data.storageToTransportFleetDistances.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.StorageId == storageId)!.Distance + storageToCertainObjectsDistances[storageId]) ?? decimal.MaxValue;
 
-							deliveryCosts.Add(new DeliveryParamsUnit
+							deliveryVariants.Add(new DeliveryParamsUnit
 							{
-								TransportFleetIndex = transportFleetIndex,
+								TransportFleetId = transportFleetId,
 								TransportOnFleet = transport.TransportOnFleet,
-								StorageIndex = storageIndex,
-								Storage = data.storages[storageId],
+								StorageId = storageId,
+								Storage = storage,
 								Cost = (decimal)transport.TransportOnFleet!.CoefficientValue * distance,
 								DeliveryTime = distance / (decimal)transport.TransportOnFleet!.AverageSpeed,
 								Distance = distance
@@ -389,30 +410,42 @@ namespace Backand.ManagersClasses
 						}
 				}
 			}
-			SortCostAndTimeListByFilterMethod(deliveryCosts, constructionOption.Filter.FilterMethod);
-			return deliveryCosts;
 		}
 
+		public static void AddDeliveryVariantsForAirTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, List<DeliveryParamsUnit> deliveryVariants)
+		{
+			//взять воздушный транспорт, который может доставить до объекта
+
+			List<TransportOnFleetWithRegions> airTransport = transportsOnFleets
+				.Where(t => t.RegionIds.Contains(objectsToDeliver.RegionId) && t.TransportOnFleet.TransportTypeId == (int)TransportTypeValue.Air)
+				.ToList();
+
+
+
+			//взять парки, где он есть этот воздушный транспорт
+			//взять наземный транспорт который может доставить груз со склада до парка транспорта
+			//
+			//сортировка по соответствующему критерию
+			//составление вариантов
+		}
+
+		public static Dictionary<int, decimal?> GetStorageToCertainObjectsDistances(List<StorageToObjectsDistance> storageToObjectsDistances, Objects? objectsToDeliver)
+		{
+			return storageToObjectsDistances
+				.Where(d => d.ObjectsId == objectsToDeliver!.ObjectsId)
+				.ToDictionary(d => d.StorageId, d => d.Distance);
+		}
+
+		public static List<TransportOnFleetWithRegions> FilterTransportFromTransportFleetByType(List<TransportOnFleetWithRegions> transportsOnFleets, int transportFleetId, TransportTypeValue transportTypeValue)
+		{
+			return transportsOnFleets
+			.Where(
+				t => t.TransportOnFleet.TransportFleet.TransportFleetId == transportFleetId
+				&& t.TransportOnFleet.TransportTypeId == (int)transportTypeValue
+			).ToList();
+		}
 
 		public static void SortCostAndTimeListByFilterMethod<T>(List<T> deliveryCosts, FilterMethod filterMethod) where T : ICostAndTime
-		{
-			switch (filterMethod)
-			{
-				case FilterMethod.Money:
-					deliveryCosts.Sort((e1, e2) => e1.Cost.CompareTo(e2.Cost));
-					break;
-				case FilterMethod.Time:
-					deliveryCosts.Sort((e1, e2) => e1.DeliveryTime.CompareTo(e2.DeliveryTime));
-					break;
-				case FilterMethod.Balanced:
-					deliveryCosts.Sort((e1, e2) => (e1.Cost * e1.DeliveryTime).CompareTo(e1.Cost * e1.DeliveryTime));
-					break;
-				default:
-					throw new NotImplementedException("Обработка такого значения фильтрации не была предусмотрена");
-			};
-		}
-
-		public static void SortVariantsByFilterMethod(List<ShortOrderVariant> deliveryCosts, FilterMethod filterMethod)
 		{
 			switch (filterMethod)
 			{
@@ -436,7 +469,7 @@ namespace Backand.ManagersClasses
 			List<ConstructionOption> constructionOptions = algorithmRequest.ConstructionOptions;
 
 			AlgorithmData dataTuple = await LoadData(dbContext, distanceService);
-			var (constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistance) = dataTuple;
+			var (constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistance, transportFleetToObjectsDistance) = dataTuple;
 
 			//цикл, в котором создаются варианты заказа для каждого сооружения
 			foreach (var constructionOption in constructionOptions)
@@ -446,7 +479,7 @@ namespace Backand.ManagersClasses
 					.Select(c => (c.Object, c.ConstructionTypeId))
 					.FirstOrDefault();
 
-				var deliveryCostsAndTime = GetDeliveryCostsAndTimes(dataTuple, constructionOption, objectsToDeliver);
+				var deliveryCostsAndTime = GetDeliveryVariants(dataTuple, constructionOption, objectsToDeliver);
 				//формируем матрицу Storage_ConstructionUnits
 				//достаём все элементы, которые могут содержаться в сооружении (то есть для начала берём наборы для сооружения)
 
@@ -488,7 +521,7 @@ namespace Backand.ManagersClasses
 							storageMaterialMatrix[storageId, materialId] = materialVariant;
 						}
 
-					var orderVariants = CalculateOrderVariants(storageMaterialMatrix, deliveryCostsAndTime);
+					var orderVariants = CalculateOrderVariants(storageMaterialMatrix, deliveryCostsAndTime, uniqueStorageIds);
 					SortCostAndTimeListByFilterMethod(orderVariants, constructionOption.Filter.FilterMethod);
 
 					AlgorithmResponse response = GetOrderVariantsWithInfo(orderVariants, dataTuple, constructionUnits, manufaturerNames: GetManufacturersNamesByStorageIds(uniqueStorageIds, dbContext, dataTuple));
@@ -496,7 +529,7 @@ namespace Backand.ManagersClasses
 			}
 		}
 
-		public static AlgorithmResponse GetOrderVariantsWithInfo(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, string> manufaturerNames, int variantsCount = -1)
+		public static AlgorithmResponse GetOrderVariantsWithInfo(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, string> manufaturerNames)
 		{
 			AlgorithmResponse response = new AlgorithmResponse();
 			for (int i = 0; i < orderVariants.Count; i++)
@@ -514,19 +547,7 @@ namespace Backand.ManagersClasses
 
 					filledOrderVariant.BuildInfo.Add(new(constructionUnit.Name, constructionUnit.TypeName, constructionUnit.MeasureUnitName, constructionUnit.Amount));
 					filledOrderVariant.ProductionInfo.Add(new(manufaturerNames[storage.StorageId], storage.Name, storage.Address, orderVariant.MaterialPricesPerUnit[constrUnitIndex], orderVariant.MaterialCosts[constrUnitIndex]));
-					filledOrderVariant.LogisticInfo.Add(new(
-						deliveryVariant.TransportOnFleet.CompanyName,
-						deliveryVariant.TransportOnFleet.TransportFleet.Name,
-						deliveryVariant.TransportOnFleet.TransportFleet.Address,
-						deliveryVariant.TransportOnFleet.TransportName,
-						deliveryVariant.TransportOnFleet.TransportTypeName,
-						deliveryVariant.TransportOnFleet.TransportModeName,
-						deliveryVariant.TransportOnFleet.CoefficientTypeName,
-						deliveryVariant.TransportOnFleet.CoefficientValue,
-						deliveryVariant.Distance,
-						deliveryVariant.DeliveryTime,
-						deliveryVariant.Cost)
-					);
+					filledOrderVariant.LogisticInfo.Add(new(deliveryVariant));
 				}
 				response.OrderVariants.Add(filledOrderVariant);
 			}
@@ -544,9 +565,11 @@ namespace Backand.ManagersClasses
 				.ToDictionary(o => o.StorageId, o => o.ManufacturerName);
 		}
 
-		public static List<ShortOrderVariant> CalculateOrderVariants(MaterialVariant?[,] storageMaterialMatrix, List<DeliveryParamsUnit> deliveryVariants)
+
+
+		public static List<ShortOrderVariant> CalculateOrderVariants(MaterialVariant?[,] storageMaterialMatrix, List<DeliveryParamsUnit> deliveryVariants, int[] storageIds)
 		{
-			//алгоритм для перебора всех вариантов
+			//алгоритм для перебора, к сожалению, всех вариантов
 			int storagesCount = storageMaterialMatrix.GetLength(0);
 			int materialsCount = storageMaterialMatrix.GetLength(1);
 
@@ -572,7 +595,15 @@ namespace Backand.ManagersClasses
 					orderVariant.MaterialPricesPerUnit[materialIndex] = materialVariant.PricePerUnit;
 
 					orderVariant.Cost += materialVariant.Cost;
-					orderVariant.DeliveryVariants[materialIndex] = deliveryVariants.FirstOrDefault(c => c.StorageIndex == storageIndicies[materialIndex]);
+
+					//TODO: переработать систему индексов или добавить преобразование!!!!
+					orderVariant.DeliveryVariants[materialIndex] = deliveryVariants.FirstOrDefault(c => c.StorageId == storageIds[storageIndicies[materialIndex]]);
+
+					if (orderVariant.DeliveryVariants[materialIndex] is null)
+					{
+						variantIsValid = false;
+						break;
+					}
 
 					if (orderVariant.DeliveryVariants[materialIndex].DeliveryTime > orderVariant.DeliveryTime)
 						orderVariant.DeliveryTime = orderVariant.DeliveryVariants[materialIndex].DeliveryTime;

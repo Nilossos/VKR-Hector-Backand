@@ -1,4 +1,6 @@
-﻿namespace Backand.FrontendEntities
+﻿using Backand.AlgorithmEntities;
+
+namespace Backand.FrontendEntities
 {
 	public class BuildInfo
 	{
@@ -61,6 +63,21 @@
 			DeliveryDistance = deliveryDistance;
 			DeliveryTime = deliveryTime;
 			DeliveryCost = deliveryCost;
+		}
+
+		public LogisticInfo(DeliveryParamsUnit deliveryVariant)
+		{
+			LogisticCompanyName = deliveryVariant.TransportOnFleet.CompanyName;
+			TransportFleetName = deliveryVariant.TransportOnFleet.TransportFleet.Name;
+			TransportFleetAddress = deliveryVariant.TransportOnFleet.TransportFleet.Address;
+			TransportName = deliveryVariant.TransportOnFleet.TransportName;
+			TransportTypeName = deliveryVariant.TransportOnFleet.TransportTypeName;
+			TransportModeName = deliveryVariant.TransportOnFleet.TransportModeName;
+			CoefficientTypeName = deliveryVariant.TransportOnFleet.CoefficientTypeName;
+			CoefficientValue = deliveryVariant.TransportOnFleet.CoefficientValue;
+			DeliveryDistance = deliveryVariant.Distance;
+			DeliveryTime = deliveryVariant.DeliveryTime;
+			DeliveryCost = deliveryVariant.Cost;
 		}
 	}
 
