@@ -12,8 +12,8 @@ namespace Backand.AlgorithmEntities
         List<MaterialSet> materialSets,
         List<StorageMaterial> storagesMaterialsAll,
         List<StorageToObjectsDistance> storageToObjectsDistances,
-        List<StorageToTransportFleetDistance> storageToTransportFleetDistances
-        //List<TransportFleetToObjectsDistance> transportFleetToObjectsDistances
+        List<StorageToTransportFleetDistance> storageToTransportFleetDistances,
+        List<TransportFleetToObjectsDistance> transportFleetToObjectsDistances
     );
 
     //public record AlgorithmData
@@ -45,6 +45,11 @@ namespace Backand.AlgorithmEntities
 	{
 		public int Id { get; init; }
 		public NpgsqlPoint Coordinates { get; init; }
+		public UnitIdWithCoordinates(int id, NpgsqlPoint coordinates)
+		{
+			Id = id;
+			Coordinates = coordinates;
+		}
 	}
 
 	public class ShortOrderVariant : ICostAndTime

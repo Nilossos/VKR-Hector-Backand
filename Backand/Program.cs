@@ -2,6 +2,7 @@ using Backand;
 using Backand.DbEntities;
 using Backand.FrontendEntities;
 using Backand.ManagersClasses;
+using Backand.ManagersClasses.AlgorithmDataManager;
 using Backand.Services;
 using Backand.Services.WebDriverServiceSpace;
 using Microsoft.AspNetCore.Authorization;
