@@ -10,7 +10,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 {
     public class AlgorithmDataManagers
     {
-        public static async Task<List<StorageMaterial>> GetStoragesMaterialsAsync(ApplicationContext dbContext)
+        private static List<DeliveryParamsUnit> DeliveryVariants { get; set; }
+
+		private static async Task<List<StorageMaterial>> GetStoragesMaterialsAsync(ApplicationContext dbContext)
         {
             return await (from storConstrUnit in dbContext.Storage_ConstructionUnit
                           join storage in dbContext.Storage on storConstrUnit.StorageId equals storage.StorageId
@@ -27,7 +29,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                           }).ToListAsync();
         }
 
-        public static async Task<List<TransportOnFleetWithRegions>> GetTransportsOnFleetsAsync(ApplicationContext dbContext)
+		private static async Task<List<TransportOnFleetWithRegions>> GetTransportsOnFleetsAsync(ApplicationContext dbContext)
         {
             return await (from deliveryRegion in dbContext.DeliveryRegion
                           join trOnFleet in dbContext.TransportFleet_Transport on deliveryRegion.TransportFleet_TransportId equals trOnFleet.TransportFleet_TransportId
@@ -69,7 +71,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
              .ToListAsync();
         }
 
-        public static Dictionary<int, List<ConstructionUnitSupplemented>> GetMaterialsSetsWithConstructionTypes(List<MaterialSet> materialSets, ApplicationContext dbContext, int constructionTypeId)
+        private static Dictionary<int, List<ConstructionUnitSupplemented>> GetMaterialsSetsWithConstructionTypes(List<MaterialSet> materialSets, ApplicationContext dbContext, int constructionTypeId)
         {
             return (from mSet in materialSets
                     where mSet.ConstructionTypeId == constructionTypeId
@@ -98,7 +100,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             );
         }
 
-        public static List<TransportOnFleetWithRegions> FilterFleetsByLogisticCompanies(List<TransportOnFleetWithRegions> transportsOnFleets, ConstructionOption constructionOption)
+		private static List<TransportOnFleetWithRegions> FilterFleetsByLogisticCompanies(List<TransportOnFleetWithRegions> transportsOnFleets, ConstructionOption constructionOption)
         {
             if (constructionOption.Filter.CertainManufacturers.Ids.Count > 0)
                 return transportsOnFleets
@@ -108,7 +110,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                 return transportsOnFleets;
         }
 
-        public static List<StorageMaterial> FilterMaterialsByManufacturers(List<StorageMaterial> storagesMaterials, ConstructionOption constructionOption)
+		static List<StorageMaterial> FilterMaterialsByManufacturers(List<StorageMaterial> storagesMaterials, ConstructionOption constructionOption)
         {
             if (constructionOption.Filter.CertainLogists.Ids.Count > 0)
                 return storagesMaterials
@@ -118,7 +120,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                 return storagesMaterials;
         }
 
-        public static async Task<AlgorithmData> LoadData(ApplicationContext dbContext, DistanceService distanceService)
+		static async Task<AlgorithmData> LoadData(ApplicationContext dbContext, DistanceService distanceService)
         {
             List<Construction> constructions = await dbContext.Construction.Include(c => c.Object).ToListAsync();
             List<Storage> storages = await dbContext.Storage.ToListAsync();
@@ -137,61 +139,19 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             return new AlgorithmData(constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistances, transportFleetToObjectsDistance);
         }
 
-        //public static List<DeliveryParamsUnit> GetDeliveryCostsAndTimes(AlgorithmData data, ConstructionOption constructionOption, Objects? objectsToDeliver)
-        //{
-        //	List<DeliveryParamsUnit> deliveryCosts = new();
-        //	List<TransportOnFleetWithRegions> transportsOnFleets = FilterFleetsByLogisticCompanies(data.transportsOnFleetsAll, constructionOption);
-        //	Dictionary<int, decimal?> storageToCertainObjectsDistances = GetStorageToCertainObjectsDistances(data.storageToObjectsDistances, objectsToDeliver);
-
-        //	//цикл, в котором рассчитываются стоимости доставок от склада до объекта
-        //	for (int transportFleetIndex = 0; transportFleetIndex < data.transportFleets.Count; transportFleetIndex++)
-        //	{
-        //		int transportFleetId = data.transportFleets[transportFleetIndex].TransportFleetId;
-        //		var transportsOnFleet = FilterTransportFromTransportFleetByType(transportsOnFleets, transportFleetId, TransportTypeValue.Ground);
-
-        //		transportsOnFleet.Sort((t1, t2) => t2.TransportOnFleet.AverageSpeed.CompareTo(t1.TransportOnFleet.AverageSpeed));
-
-        //		for (int storageIndex = 0; storageIndex < data.storages.Count; storageIndex++)
-        //		{
-        //			int storageId = data.storages[storageIndex].StorageId;
-
-        //			foreach (var transport in transportsOnFleet)
-        //				//доставляет ли транспорт в этот регион?
-        //				if (transport.RegionIds.Contains(data.storages[storageIndex].RegionId) && transport.RegionIds.Contains(objectsToDeliver!.RegionId))
-        //				{
-        //					decimal distance = (data.storageToTransportFleetDistances.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.StorageId == storageId)!.Distance + storageToCertainObjectsDistances[storageId]) ?? decimal.MaxValue;
-
-        //					deliveryCosts.Add(new DeliveryParamsUnit
-        //					{
-        //						TransportFleetId = transportFleetId,
-        //						TransportOnFleet = transport.TransportOnFleet,
-        //						StorageId = storageId,
-        //						Storage = data.storages[storageIndex],
-        //						Cost = (decimal)transport.TransportOnFleet!.CoefficientValue * distance,
-        //						DeliveryTime = distance / (decimal)transport.TransportOnFleet!.AverageSpeed,
-        //						Distance = distance
-        //					});
-        //					break;
-        //				}
-        //		}
-        //	}
-        //	SortCostAndTimeListByFilterMethod(deliveryCosts, constructionOption.Filter.FilterMethod);
-        //	return deliveryCosts;
-        //}
-
-        public static List<DeliveryParamsUnit> GetDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, Objects? objectsToDeliver)
+		static void FillDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, Objects? objectsToDeliver)
         {
-            List<DeliveryParamsUnit> deliveryVariants = new();
+            DeliveryVariants.Clear();
+
             List<TransportOnFleetWithRegions> transportsOnFleets = FilterFleetsByLogisticCompanies(data.transportsOnFleetsAll, constructionOption);
+            FilterMethod filterMethod = constructionOption.Filter.FilterMethod;
 
-            AddDeliveryVariantsForGroundTransport(data, objectsToDeliver, transportsOnFleets, deliveryVariants);
-            AddDeliveryVariantsForAirTransport(data, objectsToDeliver, transportsOnFleets, deliveryVariants);
-            SortCostAndTimeListByFilterMethod(deliveryVariants, constructionOption.Filter.FilterMethod);
-
-            return deliveryVariants;
+			AddDeliveryVariantsForGroundTransport(data, objectsToDeliver, transportsOnFleets, filterMethod);
+            AddDeliveryVariantsForAirTransport(data, objectsToDeliver, transportsOnFleets, filterMethod);
+            SortCostAndTimeListByFilterMethod(DeliveryVariants, filterMethod);
         }
 
-        public static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, List<DeliveryParamsUnit> deliveryVariants)
+		static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
         {
             Dictionary<int, decimal?> storageToCertainObjectsDistances = GetStorageToCertainObjectsDistances(data.storageToObjectsDistances, objectsToDeliver);
 
@@ -201,19 +161,21 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                 int transportFleetId = transportFleet.TransportFleetId;
                 var transportsOnFleet = FilterTransportFromTransportFleetByType(transportsOnFleets, transportFleetId, TransportTypeValue.Ground);
 
-                transportsOnFleet.Sort((t1, t2) => t2.TransportOnFleet.AverageSpeed.CompareTo(t1.TransportOnFleet.AverageSpeed));
+                SortTransportsOnFleetByFilter(transportsOnFleet, filterMethod);
 
-                foreach (var storage in data.storages)
+				var transports = GetFirstTransportFromFleets(transportsOnFleets);
+
+				foreach (var storage in data.storages)
                 {
                     int storageId = storage.StorageId;
 
-                    foreach (var transport in transportsOnFleet)
+                    foreach (var transport in transports)
                         //доставляет ли транспорт в этот регион?
                         if (transport.RegionIds.Contains(storage.RegionId) && transport.RegionIds.Contains(objectsToDeliver!.RegionId))
                         {
                             decimal distance = data.storageToTransportFleetDistances.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.StorageId == storageId)!.Distance + storageToCertainObjectsDistances[storageId] ?? decimal.MaxValue;
 
-                            deliveryVariants.Add(new DeliveryParamsUnit
+                            DeliveryVariants.Add(new DeliveryParamsUnit
                             {
                                 TransportFleetId = transportFleetId,
                                 TransportOnFleet = transport.TransportOnFleet,
@@ -229,31 +191,59 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             }
         }
 
-        public static void AddDeliveryVariantsForAirTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, List<DeliveryParamsUnit> deliveryVariants)
+        static void SortTransportsOnFleetByFilter(List<TransportOnFleetWithRegions> transportsOnFleet, FilterMethod filterMethod)
+        {
+            switch(filterMethod)
+            {
+                case FilterMethod.Time:
+					transportsOnFleet.Sort((t2, t1) => t1.TransportOnFleet.AverageSpeed.CompareTo(t2.TransportOnFleet.AverageSpeed));
+					break;
+				case FilterMethod.Money:
+					transportsOnFleet.Sort((t1, t2) => t1.TransportOnFleet.CoefficientValue.CompareTo(t2.TransportOnFleet.CoefficientValue));
+					break;
+				case FilterMethod.Balanced:
+					transportsOnFleet
+                        .Sort((t1, t2) => (t1.TransportOnFleet.CoefficientValue / t1.TransportOnFleet.AverageSpeed)
+                            .CompareTo(t2.TransportOnFleet.CoefficientValue / t2.TransportOnFleet.AverageSpeed)
+                        );
+					break;
+			}
+        }
+
+		static List<TransportOnFleetWithRegions> GetTransportToDeliverFromFleet(List<TransportOnFleetWithRegions> transportsOnFleets, Objects objectsToDeliver, TransportTypeValue transportType) =>
+            transportsOnFleets
+				.Where(t => t.RegionIds.Contains(objectsToDeliver.RegionId) && t.TransportOnFleet.TransportTypeId == (int)transportType)
+				.ToList();
+
+		static List<TransportOnFleetWithRegions> GetFirstTransportFromFleets(List<TransportOnFleetWithRegions> transportsOnFleets) =>
+            transportsOnFleets.DistinctBy(t => t.TransportOnFleet.TransportFleet.TransportFleetId).ToList();
+
+        static void AddDeliveryVariantsForAirTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
         {
             //взять воздушный транспорт, который может доставить до объекта
 
-            List<TransportOnFleetWithRegions> airTransport = transportsOnFleets
-                .Where(t => t.RegionIds.Contains(objectsToDeliver.RegionId) && t.TransportOnFleet.TransportTypeId == (int)TransportTypeValue.Air)
-                .ToList();
-
-
+            List<TransportOnFleetWithRegions> airTransports = GetTransportToDeliverFromFleet(transportsOnFleets, objectsToDeliver, TransportTypeValue.Air);
 
             //взять парки, где он есть этот воздушный транспорт
+
+            var transports = GetFirstTransportFromFleets(airTransports);
+
             //взять наземный транспорт который может доставить груз со склада до парка транспорта
             //
             //сортировка по соответствующему критерию
             //составление вариантов
         }
 
-        public static Dictionary<int, decimal?> GetStorageToCertainObjectsDistances(List<StorageToObjectsDistance> storageToObjectsDistances, Objects? objectsToDeliver)
+
+
+        static Dictionary<int, decimal?> GetStorageToCertainObjectsDistances(List<StorageToObjectsDistance> storageToObjectsDistances, Objects? objectsToDeliver)
         {
             return storageToObjectsDistances
                 .Where(d => d.ObjectsId == objectsToDeliver!.ObjectsId)
                 .ToDictionary(d => d.StorageId, d => d.Distance);
         }
 
-        public static List<TransportOnFleetWithRegions> FilterTransportFromTransportFleetByType(List<TransportOnFleetWithRegions> transportsOnFleets, int transportFleetId, TransportTypeValue transportTypeValue)
+        static List<TransportOnFleetWithRegions> FilterTransportFromTransportFleetByType(List<TransportOnFleetWithRegions> transportsOnFleets, int transportFleetId, TransportTypeValue transportTypeValue)
         {
             return transportsOnFleets
             .Where(
@@ -262,7 +252,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             ).ToList();
         }
 
-        public static void SortCostAndTimeListByFilterMethod<T>(List<T> deliveryCosts, FilterMethod filterMethod) where T : ICostAndTime
+        static void SortCostAndTimeListByFilterMethod<T>(List<T> deliveryCosts, FilterMethod filterMethod) where T : ICostAndTime
         {
             switch (filterMethod)
             {
@@ -296,7 +286,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                     .Select(c => (c.Object, c.ConstructionTypeId))
                     .FirstOrDefault();
 
-                var deliveryCostsAndTime = GetDeliveryVariants(dataTuple, constructionOption, objectsToDeliver);
+                FillDeliveryVariants(dataTuple, constructionOption, objectsToDeliver);
                 //формируем матрицу Storage_ConstructionUnits
                 //достаём все элементы, которые могут содержаться в сооружении (то есть для начала берём наборы для сооружения)
 
@@ -338,7 +328,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                             storageMaterialMatrix[storageId, materialId] = materialVariant;
                         }
 
-                    var orderVariants = CalculateOrderVariants(storageMaterialMatrix, deliveryCostsAndTime, uniqueStorageIds);
+                    var orderVariants = CalculateOrderVariants(storageMaterialMatrix, uniqueStorageIds);
                     SortCostAndTimeListByFilterMethod(orderVariants, constructionOption.Filter.FilterMethod);
 
                     AlgorithmResponse response = GetOrderVariantsWithInfo(orderVariants, dataTuple, constructionUnits, manufaturerNames: GetManufacturersNamesByStorageIds(uniqueStorageIds, dbContext, dataTuple));
@@ -346,7 +336,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             }
         }
 
-        public static AlgorithmResponse GetOrderVariantsWithInfo(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, string> manufaturerNames)
+        static AlgorithmResponse GetOrderVariantsWithInfo(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, string> manufaturerNames)
         {
             AlgorithmResponse response = new AlgorithmResponse();
             for (int i = 0; i < orderVariants.Count; i++)
@@ -371,7 +361,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             return response;
         }
 
-        public static Dictionary<int, string> GetManufacturersNamesByStorageIds(int[] storageIds, ApplicationContext dbContext, AlgorithmData data)
+        static Dictionary<int, string> GetManufacturersNamesByStorageIds(int[] storageIds, ApplicationContext dbContext, AlgorithmData data)
         {
             return data.storages
                 .Where(s => storageIds.Contains(s.StorageId))
@@ -384,7 +374,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 
 
-        public static List<ShortOrderVariant> CalculateOrderVariants(MaterialVariant?[,] storageMaterialMatrix, List<DeliveryParamsUnit> deliveryVariants, int[] storageIds)
+        static List<ShortOrderVariant> CalculateOrderVariants(MaterialVariant?[,] storageMaterialMatrix, int[] storageIds)
         {
             //алгоритм для перебора, к сожалению, всех вариантов
             int storagesCount = storageMaterialMatrix.GetLength(0);
@@ -414,7 +404,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                     orderVariant.Cost += materialVariant.Cost;
 
                     //TODO: переработать систему индексов или добавить преобразование!!!!
-                    orderVariant.DeliveryVariants[materialIndex] = deliveryVariants.FirstOrDefault(c => c.StorageId == storageIds[storageIndicies[materialIndex]]);
+                    orderVariant.DeliveryVariants[materialIndex] = DeliveryVariants.FirstOrDefault(c => c.StorageId == storageIds[storageIndicies[materialIndex]]);
 
                     if (orderVariant.DeliveryVariants[materialIndex] is null)
                     {
