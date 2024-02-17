@@ -1,6 +1,7 @@
 ﻿namespace Backand.AlgorithmEntities
 {
-	public class DeliveryInputParams
+	public record DeliveryInputParams
 	{
+
 	}
 }

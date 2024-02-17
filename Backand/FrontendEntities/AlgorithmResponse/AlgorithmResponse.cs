@@ -1,6 +1,7 @@
 ﻿using Backand.AlgorithmEntities;
+using System.Security.Cryptography.X509Certificates;
 
-namespace Backand.FrontendEntities
+namespace Backand.FrontendEntities.AlgorithmResponse
 {
 	public class BuildInfo
 	{
@@ -21,7 +22,7 @@ namespace Backand.FrontendEntities
 	public class ProductionInfo
 	{
 		public string ManufacturerName { get; set; }
-		public string StorageName { get; set;}
+		public string StorageName { get; set; }
 		public string StorageAddress { get; set; }
 		public decimal PricePerUnit { get; set; }
 		public decimal PurchasePrice { get; set; }
@@ -38,19 +39,19 @@ namespace Backand.FrontendEntities
 
 	public class LogisticInfo
 	{
-		public string? LogisticCompanyName { get; set; }
-		public string? TransportFleetName { get; set; }
-		public string? TransportFleetAddress { get; set; }
-		public string? TransportName { get; set; }
-		public string? TransportTypeName { get; set; }
-		public string? TransportModeName { get; set; }
+		public string LogisticCompanyName { get; set; }
+		public string TransportFleetName { get; set; }
+		public string TransportFleetAddress { get; set; }
+		public string TransportName { get; set; }
+		public string TransportTypeName { get; set; }
+		public string TransportModeName { get; set; }
 		public string CoefficientTypeName { get; set; }
 		public float? CoefficientValue { get; set; }
 		public decimal DeliveryDistance { get; set; }
 		public decimal DeliveryTime { get; set; }
 		public decimal DeliveryCost { get; set; }
 
-		public LogisticInfo(string? logisticCompanyName, string? transportFleetName, string? transportFleetAddress, string? transportName, string? transportTypeName, string? transportModeName, string coefficientTypeName, float coefficientValue, decimal deliveryDistance, decimal deliveryTime, decimal deliveryCost)
+		public LogisticInfo(string logisticCompanyName, string transportFleetName, string transportFleetAddress, string transportName, string transportTypeName, string transportModeName, string coefficientTypeName, float coefficientValue, decimal deliveryDistance, decimal deliveryTime, decimal deliveryCost)
 		{
 			LogisticCompanyName = logisticCompanyName;
 			TransportFleetName = transportFleetName;
@@ -65,7 +66,7 @@ namespace Backand.FrontendEntities
 			DeliveryCost = deliveryCost;
 		}
 
-		public LogisticInfo(DeliveryParamsUnit deliveryVariant)
+		public LogisticInfo(DeliveryRouteParams deliveryVariant)
 		{
 			LogisticCompanyName = deliveryVariant.TransportOnFleet.CompanyName;
 			TransportFleetName = deliveryVariant.TransportOnFleet.TransportFleet.Name;
@@ -78,6 +79,15 @@ namespace Backand.FrontendEntities
 			DeliveryDistance = deliveryVariant.Distance;
 			DeliveryTime = deliveryVariant.DeliveryTime;
 			DeliveryCost = deliveryVariant.Cost;
+		}
+
+		public static List<LogisticInfo> CreateLogisticInfoList(IEnumerable<DeliveryRouteParams> deliveryRoutes)
+		{
+			List<LogisticInfo> logisticInfos = new();
+			foreach(var deliveryParams in deliveryRoutes)
+				logisticInfos.Add(new LogisticInfo(deliveryParams));
+
+			return logisticInfos;
 		}
 	}
 
@@ -95,19 +105,36 @@ namespace Backand.FrontendEntities
 
 	public class OrderVariant
 	{
-		public List<BuildInfo> BuildInfo { get; set; } = new();
-		public List<ProductionInfo> ProductionInfo { get; set; } = new();
-		public List<LogisticInfo> LogisticInfo { get; set; } = new();
+		public IEnumerable<MaterialOrderVariant> MaterialOrderVariants { get; set; }
 		public OrderResult OrderResult { get; set; }
 
-		public OrderVariant(OrderResult orderResult) 
+		public OrderVariant(IEnumerable<MaterialOrderVariant> materialOrderVariants, OrderResult orderResult)
 		{
+			MaterialOrderVariants = materialOrderVariants;
 			OrderResult = orderResult;
 		}
 	}
 
+	public class MaterialOrderVariant
+	{
+		public BuildInfo BuildInfo { get; init; }
+		public ProductionInfo ProductionInfo { get; init; }
+		public List<LogisticInfo> LogisticInfos { get; init; }
+		public MaterialOrderVariant(BuildInfo buildInfo, ProductionInfo productionInfo, List<LogisticInfo> logisticInfos)
+		{
+			BuildInfo = buildInfo;
+			ProductionInfo = productionInfo;
+			LogisticInfos = logisticInfos;
+		}
+	}
+
+	public class Order
+	{
+		public List<OrderVariant> Variants { get; init; } = null!;
+	}
+
 	public class AlgorithmResponse
 	{
-		public List<OrderVariant>? OrderVariants { get; set; }
+		public List<Order> Orders { get; init; } = null!;
 	}
 }
