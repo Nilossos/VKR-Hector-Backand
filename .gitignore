@@ -364,3 +364,4 @@ FodyWeavers.xsd
 #Здесь хранится иформация для авторизации в различных сторонних сервисах
 #Yandex maps api...(добавить список сервисов в будущем)
 Backand/external_services.json
+Backand/AppContextOptions.cs
