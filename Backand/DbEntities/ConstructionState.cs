@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Backand.DbEntities.ConstructionSpace;
 
 namespace Backand.DbEntities
 {

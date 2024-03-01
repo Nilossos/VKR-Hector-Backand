@@ -1,4 +1,4 @@
-﻿using Backand.DbEntities;
+﻿using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
 using NpgsqlTypes;
@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities
 {
-	public partial class Objects
+    public partial class Objects
 	{
 		public int ObjectsId { get; set; }
 

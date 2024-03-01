@@ -1,10 +1,11 @@
 ﻿using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backand
 {
 
-	public partial class ApplicationContext : DbContext
+    public partial class ApplicationContext : DbContext
 	{
 		public ApplicationContext()
 		{

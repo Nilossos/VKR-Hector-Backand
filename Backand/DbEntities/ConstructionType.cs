@@ -1,10 +1,10 @@
-﻿using Backand.DbEntities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Backand.DbEntities.ConstructionSpace;
 
 namespace Backand.DbEntities
 {
-	public partial class ConstructionType
+    public partial class ConstructionType
 	{
 		public int ConstructionTypeId { get; set; }
 

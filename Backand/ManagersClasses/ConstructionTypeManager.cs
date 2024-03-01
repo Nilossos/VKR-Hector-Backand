@@ -1,4 +1,6 @@
-﻿namespace Backand.ManagersClasses
+﻿using Backand.DbEntities;
+
+namespace Backand.ManagersClasses
 {
     public static class ConstructionTypeManager
     {
@@ -6,7 +8,7 @@
         {
             return await Task.Run(() =>
             {
-                var list = dbContext.ConstructionType.ToArray();
+                IEnumerable<ConstructionType> list = dbContext.ConstructionType.ToArray();
                 return Results.Json(list);
             });
         }

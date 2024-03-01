@@ -1,4 +1,5 @@
 ﻿using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
 using Microsoft.EntityFrameworkCore;
@@ -99,14 +100,20 @@ namespace Backand.ManagersClasses
 
                 if (construction != null)
                 {
-                    construction.ConstructionStateId =BuildState.Planned;
-                    construction.ConstructionId = 0;
-                    await constructions.AddAsync(construction);
-                    await dbContext.SaveChangesAsync();
-                    response = new(false, "Construction has added!");
+                    ConstructionState? plannedState = await dbContext.ConstructionState.FirstOrDefaultAsync(cs=>
+                                                        cs.ConstructionStateId==BuildState.Planned);
+                    if (plannedState != null) {
+                        construction.ConstructionState = plannedState;
+                        construction.ConstructionId = 0;
+                        await constructions.AddAsync(construction);
+                        await dbContext.SaveChangesAsync();
+                        response = new(false, "Сооружение добавлено!");
+                    }
+                    else
+                        response = new(true, "Состояния строительства 'Запланированно' не существует");
                 }
                 else
-                    response = new(true, "Incorrect construction data!");
+                    response = new(true, "Неправильные передаваемые данные о сооружении!");
 
             }
             catch(Exception exc)
@@ -117,33 +124,33 @@ namespace Backand.ManagersClasses
         }
 
             //Update object
-            public static async Task UpdateConstruction(HttpContext context)
+        public static async Task UpdateConstruction(HttpContext context)
+        {
+            /*Construction constructionData = await context.Request.ReadFromJsonAsync<Construction>();
+            if (constructionData != null)
             {
-                /*Construction constructionData = await context.Request.ReadFromJsonAsync<Construction>();
-                if (constructionData != null)
+                List<Construction> constructions;
+
+                using (ApplicationContext db = new ApplicationContext())
                 {
-                    List<Construction> constructions;
-
-                    using (ApplicationContext db = new ApplicationContext())
+                    constructions = db.Construction.ToList();
+                    var construction = constructions.FirstOrDefault(c => c.ConstructionId == constructionData.ConstructionId);
+                    if (construction != null)
                     {
-                        constructions = db.Construction.ToList();
-                        var construction = constructions.FirstOrDefault(c => c.ConstructionId == constructionData.ConstructionId);
-                        if (construction != null)
-                        {
-                            construction.Name = constructionData.Name;
-                            construction.Description = constructionData.Description;
-                            construction.IsWorkshop = constructionData.IsWorkshop;
-                            await db.SaveChangesAsync();
-                            await context.Response.WriteAsJsonAsync(construction);
-                        }
-
-                        else
-                        {
-                            await context.Response.WriteAsJsonAsync("Construction is null");
-                        }
+                        construction.Name = constructionData.Name;
+                        construction.Description = constructionData.Description;
+                        construction.IsWorkshop = constructionData.IsWorkshop;
+                        await db.SaveChangesAsync();
+                        await context.Response.WriteAsJsonAsync(construction);
                     }
-                }*/
-            }
+
+                    else
+                    {
+                        await context.Response.WriteAsJsonAsync("Construction is null");
+                    }
+                }
+            }*/
+        }
 
         //Delete field 
         public static async Task<IResult> DeleteConstruction(ApplicationContext dbContext,HttpContext context, int id)

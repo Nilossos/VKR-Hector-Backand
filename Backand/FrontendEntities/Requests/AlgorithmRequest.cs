@@ -42,9 +42,7 @@ namespace Backand.FrontendEntities.Requests
 
 	public class ConstructionOption
 	{
-		[JsonPropertyName("constructionId")]
 		public int ConstructionId { get; init; }
-		[JsonPropertyName("filters")]
 		public Filter Filter { get; init; }
 	}
 

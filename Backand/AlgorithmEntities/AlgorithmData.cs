@@ -1,9 +1,10 @@
 ﻿using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 using NpgsqlTypes;
 
 namespace Backand.AlgorithmEntities
 {
-	public record AlgorithmData
+    public record AlgorithmData
 	(
         List<Construction> constructions,
         List<Storage> storages,

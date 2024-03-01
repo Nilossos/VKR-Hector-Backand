@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Backand.Services;
 using Backand.FrontendEntities;
 using Backand.ManagersClasses.AlgorithmDataManager.TrackGetters;
+using Backand.DbEntities.ConstructionSpace;
 
 namespace Backand.ManagersClasses.AlgorithmDataManager
 {
@@ -123,7 +124,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             List<Construction> constructions = await dbContext.Construction.Include(c => c.Object).ToListAsync();
             List<Storage> storages = await dbContext.Storage.ToListAsync();
             List<TransportFleet> transportFleets = await dbContext.TransportFleet.ToListAsync();
-            List<TransportOnFleetWithRegions> transportsOnFleetsAll = await GetTransportsOnFleetsAsync(dbContext);
+            List<TransportOnFleetWithRegions> transportsOnFleetsAll = new();
             List<MaterialSet> materialSets = await dbContext.MaterialSet.ToListAsync();
             List<StorageMaterial> storagesMaterialsAll = await GetStoragesMaterialsAsync(dbContext);
 

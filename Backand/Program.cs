@@ -10,7 +10,7 @@ using OpenQA.Selenium.DevTools.V118.Autofill;
 using static Newtonsoft.Json.JsonConvert;
 
 var builder = WebApplication.CreateBuilder();
-//builder.Configuration.AddJsonFile("external_services.json");
+builder.Configuration.AddJsonFile("external_services.json");
 builder.Services.AddWebDriverService();
 builder.Services.AddDistanceService();
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -82,6 +82,10 @@ app.MapGet("/material_set_construction_unit/{id}", MaterialSet_ConstructionUnitM
 app.MapDelete("/material_set_construction_unit/{id}", MaterialSet_ConstructionUnitManagers.DeleteMaterialSet_ConstructionUnit);
 app.MapPost("/material_set_construction_unit", MaterialSet_ConstructionUnitManagers.CreateMaterialSet_ConstructionUnit);
 app.MapPut("/material_set_construction_unit", MaterialSet_ConstructionUnitManagers.UpdateMaterialSet_ConstructionUnit);
+
+app.MapGet("/construction_type",ConstructionTypeManager.GetTypes);
+
+app.MapGet("/construction_state",ConstructionStateManager.GetAvailableStates);
 
 //CRUD FOR MANUFACTURE 
 app.MapGet("/manufacturer", ManufactureManagers.GetAllManufacture);
