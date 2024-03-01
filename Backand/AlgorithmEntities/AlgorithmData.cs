@@ -1,9 +1,6 @@
 ﻿using Backand.DbEntities;
-<<<<<<< HEAD
 using Backand.DbEntities.ConstructionSpace;
 using NpgsqlTypes;
-=======
->>>>>>> 98622d32a5e8c5f4fc67991190d9931116e1e6e3
 
 namespace Backand.AlgorithmEntities
 {
