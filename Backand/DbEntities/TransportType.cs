@@ -17,3 +17,10 @@ public partial class TransportType
 
     public virtual ICollection<TransportMode> TransportModes { get; set; } = new List<TransportMode>();
 }
+
+public enum TransportTypeValue
+{
+    Air = 1,
+    Ground,
+    Water
+}

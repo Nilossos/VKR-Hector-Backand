@@ -1,28 +1,19 @@
 ﻿using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
+using NpgsqlTypes;
 
 namespace Backand.AlgorithmEntities
 {
-    public class AlgorithmData
-    {
-        //пока пусто
-    }
-
-    public class TransportOnFleet
-    {
-		public int TransportFleetId { get; init; }
-
-		public int TransportId { get; init; }
-
-		public int AverageSpeed { get; init; }
-
-		public int CoefficientTypeId { get; init; }
-
-		public float CoefficientValue { get; init; }
-
-		public string? TransportName { get; init; }
-
-		public int TransportType { get; init; }
-
-
-	}
+    public record AlgorithmData
+	(
+		List<Construction> constructions,
+		List<Storage> storages,
+		List<TransportFleet> transportFleets,
+		List<TransportOnFleetWithRegions> transportsOnFleetsAll,
+		List<MaterialSet> materialSets,
+		List<StorageMaterial> storagesMaterialsAll,
+		List<StorageToObjectsDistance> storageToObjectsDistances,
+		List<StorageToTransportFleetDistance> storageToTransportFleetDistances,
+		List<TransportFleetToObjectsDistance> transportFleetToObjectsDistances
+	);
 }

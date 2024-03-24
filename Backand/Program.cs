@@ -1,19 +1,26 @@
 using Backand;
+using Backand.DbEntities;
+using Backand.FrontendEntities;
 using Backand.ManagersClasses;
-using Microsoft.AspNetCore.Authorization;
-
+using Backand.ManagersClasses.AlgorithmDataManager;
+using Backand.Services;
+using Backand.Services.WebDriverServiceSpace;
+using static Newtonsoft.Json.JsonConvert;
 
 var builder = WebApplication.CreateBuilder();
+builder.Configuration.AddJsonFile("external_services.json");
+builder.Services.AddWebDriverService();
+builder.Services.AddDistanceService();
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.AllowAnyMethod();
-                          policy.AllowAnyHeader();
-                          policy.AllowAnyOrigin();
-                      });
+	options.AddPolicy(name: MyAllowSpecificOrigins,
+					  policy =>
+					  {
+						  policy.AllowAnyMethod();
+						  policy.AllowAnyHeader();
+						  policy.AllowAnyOrigin();
+					  });
 });
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 builder.Services.AddDbContext<ApplicationContext>();
@@ -73,6 +80,10 @@ app.MapGet("/material_set_construction_unit/{id}", MaterialSet_ConstructionUnitM
 app.MapDelete("/material_set_construction_unit/{id}", MaterialSet_ConstructionUnitManagers.DeleteMaterialSet_ConstructionUnit);
 app.MapPost("/material_set_construction_unit", MaterialSet_ConstructionUnitManagers.CreateMaterialSet_ConstructionUnit);
 app.MapPut("/material_set_construction_unit", MaterialSet_ConstructionUnitManagers.UpdateMaterialSet_ConstructionUnit);
+
+app.MapGet("/construction_type",ConstructionTypeManager.GetTypes);
+
+app.MapGet("/construction_state",ConstructionStateManager.GetAvailableStates);
 
 //CRUD FOR MANUFACTURE 
 app.MapGet("/manufacturer", ManufactureManagers.GetAllManufacture);
@@ -175,6 +186,27 @@ app.MapPatch("/user/{id:int}", UserManagers.UpdateUser);
 app.MapGet("/construction_types", ConstructionTypeManager.GetTypes);
 app.MapGet("/subsidiaries",SubsidiaryManager.GetSubsidiaries);
 
-app.MapPost("/algorithm", AlgorithmDataManagers.GetFinalCostTime);
+app.MapPost("/algorithm", AlgorithmDataManagers.CalculateOrderCostTime);
+
+app.MapGet("/distance", async (DistanceService ds,HttpContext context) =>
+{
+	try
+	{
+		var routes_str = context.Request.Query["routes"].ToString().Replace(" ", "");
+		var routes = DeserializeObject<double[][]>(routes_str);
+		var dist = await ds.GetDistance(routes);
+		return Results.Json(dist);
+	}
+	catch (Exception e)
+	{
+		context.Response.StatusCode = StatusCodes.Status400BadRequest;
+		return Results.Json(new BaseResponse(true, e.Message));
+	}
+});
+
+var fields = typeof(StorageToObjectsDistance).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+foreach (var field in fields)
+	Console.WriteLine(field);
 
 app.Run();

@@ -13,7 +13,7 @@ public partial class Company
 
     public string? Url { get; set; }
 
-    public int? CompanyTypeId { get; set; }
+    public int CompanyTypeId { get; set; }
 
     public virtual CompanyType? CompanyType { get; set; }
 

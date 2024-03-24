@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Backand.FrontendEntities;
+using NpgsqlTypes;
+using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities;
 
@@ -14,6 +15,11 @@ public partial class Storage
     public string Address { get; set; } = null!;
 
     public int? ManufacturerId { get; set; }
+
+    [JsonIgnore]
+    public NpgsqlPoint Coordinates { get; set; }
+
+    public Spot Spot { get => Coordinates.ToSpot(); }
 
     public virtual Manufacturer? Manufacturer { get; set; }
 

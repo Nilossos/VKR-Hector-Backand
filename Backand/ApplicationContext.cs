@@ -1,10 +1,11 @@
 ﻿using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backand
 {
 
-	public partial class ApplicationContext : DbContext
+    public partial class ApplicationContext : DbContext
 	{
 		public ApplicationContext()
 		{
@@ -55,7 +56,11 @@ namespace Backand
 
 		public virtual DbSet<Storage_ConstructionUnit> Storage_ConstructionUnit { get; set; }
 
-		public virtual DbSet<Subsidiary> Subsidiary { get; set; }
+        public virtual DbSet<StorageToObjectsDistance> StorageToObjectsDistance { get; set; }
+
+        public virtual DbSet<StorageToTransportFleetDistance> StorageToTransportFleetDistance { get; set; }
+
+        public virtual DbSet<Subsidiary> Subsidiary { get; set; }
 
 		public virtual DbSet<Transport> Transport { get; set; }
 
@@ -63,7 +68,9 @@ namespace Backand
 
 		public virtual DbSet<TransportFleet_Transport> TransportFleet_Transport { get; set; }
 
-		public virtual DbSet<TransportMode> TransportMode { get; set; }
+        public virtual DbSet<TransportFleetToObjectsDistance> TransportFleetToObjectsDistance { get; set; }
+
+        public virtual DbSet<TransportMode> TransportMode { get; set; }
 
 		public virtual DbSet<TransportType> TransportType { get; set; }
 
@@ -71,9 +78,8 @@ namespace Backand
 
 		public virtual DbSet<UserType> UserType { get; set; }
 
-		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-			=> optionsBuilder.UseNpgsql("Host=localhost;Database=gazprom_db;Username=postgres;Password=admin");
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => 
+			optionsBuilder.UseNpgsql(AppContextOptions.Options);
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -153,6 +159,7 @@ namespace Backand
 
 				entity.Property(e => e.ConstructionTypeId).UseIdentityAlwaysColumn();
 				entity.Property(e => e.DocumentPath).HasColumnType("character varying");
+				entity.Property(e => e.IsAssemblyShop).HasColumnType("bool");
 				entity.Property(e => e.Name).HasMaxLength(100);
 			});
 

@@ -13,7 +13,7 @@ public partial class TransportFleet_Transport
 
     public int AverageSpeed { get; set; }
 
-    public int? CoefficientTypeId { get; set; }
+    public int CoefficientTypeId { get; set; }
 
     public float CoefficientValue { get; set; }
 

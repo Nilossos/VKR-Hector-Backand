@@ -1,4 +1,4 @@
-﻿using Backand.DbEntities;
+﻿using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
 using NpgsqlTypes;
@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities
 {
-	public partial class Objects
+    public partial class Objects
 	{
 		public int ObjectsId { get; set; }
 
@@ -22,6 +22,8 @@ namespace Backand.DbEntities
 
 		public int RegionId { get; set; }
 
+		public bool ContainsAssemblyShop { get; set; }
+
 		public virtual ICollection<Construction> Constructions { get; set; } = new List<Construction>();
 
 		public virtual Mine? Mine { get; set; }
@@ -31,7 +33,7 @@ namespace Backand.DbEntities
 		public virtual Region? Region { get; set; }
 
 		[JsonIgnore]
-		public EntityLink Link { get => new() { Id = ObjectsId, Name = this.Name }; }
+		public EntityLink Link { get => new() { Id = ObjectsId, Name = Name }; }
 		public MapLink MapLink { get => new() { Id = ObjectsId, Name = Name, Coordination = Spot }; }
 	}
 }

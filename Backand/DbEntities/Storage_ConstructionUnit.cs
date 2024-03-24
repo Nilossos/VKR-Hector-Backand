@@ -7,9 +7,9 @@ public partial class Storage_ConstructionUnit
 {
     public int Storage_ConstructionUnitId { get; set; }
 
-    public int? StorageId { get; set; }
+    public int StorageId { get; set; }
 
-    public int? ConstructionUnitId { get; set; }
+    public int ConstructionUnitId { get; set; }
 
     public decimal PricePerUnit { get; set; }
 

@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+#Здесь хранится иформация для авторизации в различных сторонних сервисах
+#Yandex maps api...(добавить список сервисов в будущем)
+Backand/external_services.json
+<<<<<<< HEAD
+
+# Здесь хранится информация о подключении к бд
+Backans/AppContextOptions.cs
+=======
+Backand/AppContextOptions.cs
+>>>>>>> 37d60ff0d507b626b2668c0c7e4157e0c6ac0829

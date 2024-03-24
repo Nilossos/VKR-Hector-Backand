@@ -1,8 +1,9 @@
 ﻿using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 
 namespace Backand.FrontendEntities
 {
-	public class ConstructionInfo
+    public class ConstructionInfo
 	{
 		public int ConstructionId { get; }
 		public string ConstructionName { get; }

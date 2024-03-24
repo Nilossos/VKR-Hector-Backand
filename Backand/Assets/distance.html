@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yandex Maps API Example</title>
+    <!--При инициализации сюда вставиться ссылка на главный скрипт яндекс-карт-->
+    <script id="yamaps-root-script"></script>
+</head>
+<body>
+    <input type="text" id="input" />
+    <input type="text" id="output" value="0" read="0" onclick="onGetOutput()" />
+    <button id="reset" onclick="reset()">Сброс</button>
+    <button id="init" onclick="initialize_ymaps()" inited="0">Init</button>
+    <div id="map" style="width: 600px; height: 400px;"></div>
+    <script>
+        var myMap, input = document.getElementById("input"),
+            output = document.getElementById("output"), init_btn = document.getElementById('init');
+
+        function reset() {
+            output.setAttribute('read', 0)
+        }
+        function get_route(routes) {
+            let route = new ymaps.multiRouter.MultiRoute({
+                referencePoints: routes,
+                params: {
+                    routingMode: 'auto'
+                }
+            }, {
+                boundsAutoApply: true
+            });
+            myMap.geoObjects.add(route);
+            return new Promise((resolve, reject) => {
+                let events = route.model.events;
+                events.add(["requestsuccess", "requestfail"], (e) => {
+                    console.log('event: ', e)
+                    const type = e.originalEvent.type;
+                    if (type == "requestsuccess") {
+                        try {
+                            console.log("orig ev: ", e.originalEvent)
+                            let distance = route.getRoutes().get(0).properties.get("distance");
+                            let kilometres = distance.value / 1000;
+                            myMap.geoObjects.remove(route)
+                            resolve(kilometres);
+                        }
+                        catch {
+                            myMap.geoObjects.remove(route)
+                            reject("Маршрута не существует")
+                        }
+                    }
+                    else {
+                        myMap.geoObjects.remove(route)
+                        reject("Нет доступа к api!");
+                    }
+                });
+            });
+        }
+
+        
+    </script>
+    <script>
+        function resetValues() {
+            output.setAttribute('read', 1);
+            input.value = '';
+        }
+        function setError(reason) {
+            resetValues();
+            output.setAttribute('error', reason);
+            output.setAttribute('value', -1)
+        }
+        function onGetOutput() {
+            try {
+                const routes_str = input.value;
+                let routes = JSON.parse(routes_str);
+                get_route(routes).then(val => {
+                    output.setAttribute('value', val)
+                    console.log(val);
+                    resetValues();
+                }).catch(reason => {
+                    console.error(reason)
+                    setError(reason)
+                })
+            }
+            catch (error) {
+                setError(error)
+            }
+        }
+    </script>
+    <script>
+        function init() {
+            myMap = new ymaps.Map("map", {
+                center: [55.755773, 37.617761],
+                zoom: 12
+            });
+            init_btn.setAttribute("inited", "1");
+        }
+        async function initialize_ymaps() {
+            let ymapsScript = document.getElementById("yamaps-root-script");
+            const src = ymapsScript.getAttribute('src');
+            let d = await fetch(src)
+            let text = await d.text()
+            ymapsScript.innerText = text
+            ymaps.ready(init)
+        }
+    </script>
+</body>
+</html>

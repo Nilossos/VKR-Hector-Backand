@@ -7,11 +7,11 @@ public partial class ConstructionUnit
 {
     public int ConstructionUnitId { get; set; }
 
-    public int? ConstructionUnitTypeId { get; set; }
+    public int ConstructionUnitTypeId { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string Name { get; set; }
 
-    public int? MeasureUnitId { get; set; }
+    public int MeasureUnitId { get; set; }
 
     public virtual ConstructionUnitType? ConstructionUnitType { get; set; }
 
