@@ -4,6 +4,10 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 {
 	public class LogisticInfo
 	{
+		public Guid TrackId => Guid.NewGuid();
+		
+		public decimal AverageSpeed { get; set; }
+		
 		public string LogisticCompanyName { get; set; }
 		public string TransportFleetName { get; set; }
 		public string TransportFleetAddress { get; set; }
@@ -13,9 +17,13 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 		public string CoefficientTypeName { get; set; }
 		public float? CoefficientValue { get; set; }
 		public decimal DeliveryDistance { get; set; }
-		public decimal DeliveryTime { get; set; }
-		public decimal DeliveryCost { get; set; }
 
+		public decimal DeliveryTime => DeliveryDistance / AverageSpeed;
+
+		public decimal DeliveryCost => 	(decimal)CoefficientValue.Value * DeliveryDistance;
+
+		public LogisticInfo() { }
+		
 		public LogisticInfo(string logisticCompanyName, string transportFleetName, string transportFleetAddress, string transportName, string transportTypeName, string transportModeName, string coefficientTypeName, float coefficientValue, decimal deliveryDistance, decimal deliveryTime, decimal deliveryCost)
 		{
 			LogisticCompanyName = logisticCompanyName;
@@ -27,8 +35,8 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 			CoefficientTypeName = coefficientTypeName;
 			CoefficientValue = coefficientValue;
 			DeliveryDistance = deliveryDistance;
-			DeliveryTime = deliveryTime;
-			DeliveryCost = deliveryCost;
+			//DeliveryTime = deliveryTime;
+			//DeliveryCost = deliveryCost;
 		}
 
 		public LogisticInfo(DeliveryRouteParams deliveryVariant)
@@ -42,8 +50,8 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 			CoefficientTypeName = deliveryVariant.TransportOnFleet.CoefficientTypeName;
 			CoefficientValue = deliveryVariant.TransportOnFleet.CoefficientValue;
 			DeliveryDistance = deliveryVariant.Distance;
-			DeliveryTime = deliveryVariant.DeliveryTime;
-			DeliveryCost = deliveryVariant.Cost;
+			// DeliveryTime = deliveryVariant.DeliveryTime;
+			// DeliveryCost = deliveryVariant.Cost;
 		}
 
 		public static List<LogisticInfo> CreateLogisticInfoList(IEnumerable<DeliveryRouteParams> deliveryRoutes)
@@ -51,7 +59,6 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 			List<LogisticInfo> logisticInfos = new();
 			foreach (var deliveryParams in deliveryRoutes)
 				logisticInfos.Add(new LogisticInfo(deliveryParams));
-
 			return logisticInfos;
 		}
 	}

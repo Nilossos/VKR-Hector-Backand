@@ -2,6 +2,8 @@
 {
 	public class ProductionInfo
 	{
+		public ProductionInfo() { }
+		
 		public string ManufacturerName { get; set; }
 		public string StorageName { get; set; }
 		public string StorageAddress { get; set; }

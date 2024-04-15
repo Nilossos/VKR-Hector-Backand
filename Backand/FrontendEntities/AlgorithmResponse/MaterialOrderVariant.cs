@@ -11,5 +11,7 @@
 			ProductionInfo = productionInfo;
 			LogisticInfos = logisticInfos;
 		}
+
+		public MaterialOrderVariant() { }
 	}
 }

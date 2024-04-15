@@ -49,7 +49,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 		internal static Order GetOrderVariantsWithInfo(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, Manufacturer> storageManufaturers, bool isAssemblyBuildRequired)
 		{
-			Order order = new() { IsAssemblyBuildRequired = isAssemblyBuildRequired };
+			Order order = new(); // { IsAssemblyBuildRequired = isAssemblyBuildRequired };
 
 			for (int i = 0; i < orderVariants.Count; i++)
 			{

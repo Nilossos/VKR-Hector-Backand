@@ -1,4 +1,5 @@
-﻿using Backand.AlgorithmEntities;
+﻿using System.Diagnostics.CodeAnalysis;
+using Backand.AlgorithmEntities;
 using Backand.DbEntities;
 using Backand.FrontendEntities.Requests;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,9 @@ using Backand.Services;
 using Backand.ManagersClasses.AlgorithmDataManager.TrackGetters;
 using Backand.FrontendEntities.AlgorithmResponse;
 using Backand.DbEntities.ConstructionSpace;
+using Backand.Services.AlgorithmServices;
+using Backand.Services.AlgorithmServices.AlgorithmPreparers;
+using Backand.Services.AlgorithmServices.AlgorithmSolvers;
 using static Backand.ManagersClasses.AlgorithmDataManager.InnerDataRequests;
 using static Backand.ManagersClasses.AlgorithmDataManager.DataFiltering;
 using static Backand.ManagersClasses.AlgorithmDataManager.DataSorting;
@@ -15,7 +19,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 {
 	public class AlgorithmDataManagers : DbRequests
 	{
-		static async Task<AlgorithmData> LoadData(ApplicationContext dbContext, DistanceService distanceService)
+		public static async Task<AlgorithmData> LoadData(ApplicationContext dbContext, DistanceService distanceService)
 		{
 			List<Construction> constructions = await dbContext.Construction.Include(c => c.Object).ToListAsync();
 			List<Storage> storages = await dbContext.Storage.ToListAsync();
@@ -63,7 +67,6 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
                     var constructionUnits = constructionMaterialSet.Value;
                     bool isAssemblyBuildRequired = !objectsToDeliver.ContainsAssemblyShop && (BuildType)constructionUnits[0].ConstructionUnitTypeId == BuildType.Block;
 
-					//пропускаем тип постройки, который отключен фильтром
 					if (allowedBuildType != BuildType.NoMatter && (BuildType)constructionUnits[0].ConstructionUnitTypeId != allowedBuildType)
 						continue;
 
@@ -72,7 +75,6 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 					int[] uniqueStorageIds = constructionUnitsFromStorage.Select(cUnit => cUnit.StorageId).Distinct().ToArray();
 					MaterialParams?[,] storageMaterialMatrix = new MaterialParams?[uniqueStorageIds.Length, uniqueConstructionUnitIds.Length];
-					MaterialParams? materialVariant = null;
 
 					for (int storageId = 0; storageId < uniqueStorageIds.Length; storageId++)
 						for (int materialId = 0; materialId < uniqueConstructionUnitIds.Length; materialId++)
@@ -82,13 +84,13 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 								cUnit!.ConstructionUnitId == uniqueConstructionUnitIds[materialId]
 								&& cUnit.StorageId == uniqueStorageIds[storageId], null);
 
-							if (constructionUnitFromStorage is not null)
-								materialVariant = new MaterialParams
+							storageMaterialMatrix[storageId, materialId] = (constructionUnitFromStorage == null)
+								? null
+								: new MaterialParams()
 								{
 									PricePerUnit = constructionUnitFromStorage.PricePerUnit,
-									Amount = (decimal)constructionUnits[materialId].Amount,
+									Amount = (decimal)constructionUnits[materialId].Amount
 								};
-							storageMaterialMatrix[storageId, materialId] = materialVariant;
 						}
 
 					var storagesManufacturer = GetManufacturersByStorageIds(uniqueStorageIds, dbContext, dataTuple);
@@ -99,10 +101,17 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 					response.Orders.Add(GetOrderVariantsWithInfo(orderVariants, dataTuple, constructionUnits, storagesManufacturer, isAssemblyBuildRequired));
 				}
 			}
-
 			await context.Response.WriteAsJsonAsync(response);
 		}
 
+		internal static async Task CalculateSimpleOrderCostTime(HttpContext context, ApplicationContext dbContext, DistanceService distanceService, CancellationToken cancellationToken)
+		{
+			var algorithmRequest = await context.Request.ReadFromJsonAsync<AlgorithmRequest>(cancellationToken) ?? throw new NullReferenceException("Пустое тело запроса!");
+			var algorithmService = new AlgorithmService(await LoadData(dbContext, distanceService), dbContext);
+			var results = await algorithmService.GetAlgorithmSolve(algorithmRequest, cancellationToken);
+			await context.Response.WriteAsJsonAsync(results, cancellationToken);
+		}
+		
 		static List<ShortOrderVariant> CalculateOrderVariants(MaterialParams?[,] storageMaterialMatrix, int[] storageIds, Dictionary<int, Manufacturer> storagesManufacturer)
 		{
 			///алгоритм для перебора, к сожалению, всех вариантов
@@ -172,7 +181,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 		static void UpdateIndices(int[] storageIndices, int materialsCount)
 		{
 			storageIndices[0]++;
-
+			
 			for (int materialIndex = 0; storageIndices[materialIndex] == materialsCount && materialIndex < storageIndices.Length - 1; materialIndex++)
 			{
 				storageIndices[materialIndex] = 0;

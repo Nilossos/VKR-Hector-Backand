@@ -187,6 +187,7 @@ app.MapGet("/construction_types", ConstructionTypeManager.GetTypes);
 app.MapGet("/subsidiaries",SubsidiaryManager.GetSubsidiaries);
 
 app.MapPost("/algorithm", AlgorithmDataManagers.CalculateOrderCostTime);
+app.MapPost("/algorithm1", AlgorithmDataManagers.CalculateSimpleOrderCostTime);
 
 app.MapGet("/distance", async (DistanceService ds,HttpContext context) =>
 {

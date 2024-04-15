@@ -22,8 +22,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 				return storagesMaterials
 					.Where(m => constructionOption.Filter.CertainManufacturers.Ids.Contains(m.ManufacturerId))
 					.ToList();
-			else
-				return storagesMaterials;
+			return storagesMaterials;
 		}
 
 		internal static List<TransportOnFleetWithRegions> FilterTransportFromTransportFleetByType(List<TransportOnFleetWithRegions> transportsOnFleets, int transportFleetId, TransportTypeValue transportTypeValue) =>

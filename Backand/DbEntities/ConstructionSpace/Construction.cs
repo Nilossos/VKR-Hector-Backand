@@ -14,15 +14,15 @@ namespace Backand.DbEntities.ConstructionSpace
 
         public int ConstructionTypeId { get; set; }
         [JsonIgnore]
-        public ConstructionType? ConstructionType { get; set; }
+        public virtual ConstructionType? ConstructionType { get; set; }
         public string ConstructionName { get; set; }
         public BuildState ConstructionStateId { get; set; }
         [JsonIgnore]
-        public ConstructionState? ConstructionState { get; set; }
+        public virtual ConstructionState? ConstructionState { get; set; }
 
 
         [JsonIgnore]
-        public Objects? Object { get; set; }
+        public virtual Objects? Object { get; set; }
 
         [JsonIgnore]
         public EntityLink Link { get => new() { Id = ConstructionId, Name = ConstructionName }; }
