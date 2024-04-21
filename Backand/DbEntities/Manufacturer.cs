@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Backand.DbEntities;
+﻿namespace Backand.DbEntities;
 
 public partial class Manufacturer
 {

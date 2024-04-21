@@ -50,11 +50,12 @@ public class TimeMinimizationSolver : CpSatAlgorithmBaseSolver
                 var timesStorageToTransportsSum = LinearExpr.Sum(timesTransportToObject) + 0;
                 Model.Add(timesStorageToTransportsSum == 0).OnlyEnforceIf(IsGroundDeliveryVariable);
                 
-                var endGroundDistance = IsGroundDeliveryVariable * DistanceStorageObjectVector[j];
+                var endGroundDistance = IsGroundDeliveryVariable * DistanceStorageObjectVector[j];  
                 
                 var timeToObjectFromStorageVariable = Model.NewIntVar(0, int.MaxValue / 3, $"time_{i}_{j}_end");
-                    
-                Model.AddDivisionEquality(timeToObjectFromStorageVariable, endGroundDistance, GroundTransportInfos[i].AverageSpeed);
+
+                Model.AddDivisionEquality(timeToObjectFromStorageVariable, endGroundDistance,
+                    GroundTransportInfos[i].AverageSpeed);
 
                 var totalTimeInPath = timeToStorageVariable + timesStorageToTransportsSum + timeToObjectFromStorageVariable;
                 

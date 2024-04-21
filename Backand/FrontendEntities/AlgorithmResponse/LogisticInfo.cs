@@ -4,7 +4,7 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 {
 	public class LogisticInfo
 	{
-		public Guid TrackId => Guid.NewGuid();
+		public Guid TrackId { get; set; }
 		
 		public decimal AverageSpeed { get; set; }
 		

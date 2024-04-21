@@ -7,7 +7,7 @@ using Google.OrTools.Sat;
 namespace Backand.Services.AlgorithmServices.AlgorithmSolvers;
 
 /// <summary>
-/// Алгоритм балансовой минимизации.
+/// Алгоритм минимизации цены и времени.
 /// </summary>
 [SolverFilter(FilterMethod.Balanced)]
 public class CostAndTimeMinimizationSolver : CpSatAlgorithmBaseSolver
@@ -16,85 +16,79 @@ public class CostAndTimeMinimizationSolver : CpSatAlgorithmBaseSolver
     
     public override void SetMinimization()
     {
+        var costs = new List<LinearExpr>();
         var times = new List<LinearExpr>();
-       var costs = new List<LinearExpr>(); 
         
         for (var i = 0; i < TransportsToStoragesCount; i++)
         {
             for (var j = 0; j < StoragesCount; j++)
             {
-                var startDistance = TransportsToStoragesAssignVariableMatrix[i, j]
-                                    * DistanceTransportStorageMatrix[i, j];
-
-                var startDeliveryCost = startDistance * GroundTransportInfos[i].Coefficient;
+                var distance = TransportsToStoragesAssignVariableMatrix[i, j] * DistanceTransportStorageMatrix[i, j];
+                
+                var startDeliveryCost = distance
+                                        * GroundTransportInfos[i].Coefficient;
                 
                 var timeToStorageVariable = Model.NewIntVar(0, int.MaxValue / 3, $"time_{i}_{j}");
-                Model.AddDivisionEquality(timeToStorageVariable, startDistance, GroundTransportInfos[i].AverageSpeed);
+                
+                Model.AddDivisionEquality(timeToStorageVariable, distance, GroundTransportInfos[i].AverageSpeed);
                 
                 var deliveryCostTransportToObject = new LinearExpr[StoragesToNotGroundTransportsCount];
-                var timesTransportToObject = new LinearExpr[StoragesToNotGroundTransportsCount];
+                var timeTransportToObjects = new LinearExpr[StoragesToNotGroundTransportsCount];
                 for (var z = 0; z < StoragesToNotGroundTransportsCount; z++)
                 {
-                    var isAssignedNonGroundTransport = Model.NewBoolVar($"non_ground_assigned_{i}_{j}_{z}");
-                    
-                    Model.AddMultiplicationEquality(isAssignedNonGroundTransport,
-                        StoragesToNotGroundTransportsAssignVariableMatrix[j, z],
-                        IsGroundDeliveryVariable.NotAsExpr());
-                    
-                    var toNonGroundDistance = isAssignedNonGroundTransport *
+                    var toNonGroundDistance = IsGroundDeliveryVariable.NotAsExpr() *
                                               DistanceStorageNotGroundTransportsMatrix[j, z];
-                    var deliveryCostToNonGround = toNonGroundDistance * GroundTransportInfos[i].Coefficient;
                     
-                    var nonGroundDistance = isAssignedNonGroundTransport *
+                    var nonGroundDistance = IsGroundDeliveryVariable.NotAsExpr() *
                                             DistanceTransportObjectVector[z];
-                    var nonGroundDeliveryCost = nonGroundDistance * NonGroundTransportInfos[z].Coefficient;
-
-                    deliveryCostTransportToObject[z] = deliveryCostToNonGround + nonGroundDeliveryCost;
                     
                     var timeTransportToObject = Model.NewIntVar(0, int.MaxValue / 3, $"time_{i}_{j}_{z}_air");
                     Model.AddDivisionEquality(timeTransportToObject, nonGroundDistance, NonGroundTransportInfos[z].AverageSpeed);
+                    
                     var timeStorageToNonGround = Model.NewIntVar(0, int.MaxValue / 3, $"time_{i}_{j}_{z}_to_non_ground");
                     Model.AddDivisionEquality(timeStorageToNonGround, toNonGroundDistance, GroundTransportInfos[i].AverageSpeed);
-                    timesTransportToObject[z] = timeTransportToObject + timeStorageToNonGround;
+                    
+                    deliveryCostTransportToObject[z] = toNonGroundDistance * GroundTransportInfos[i].Coefficient +
+                                                       nonGroundDistance * NonGroundTransportInfos[z].Coefficient;
+                    timeTransportToObjects[z] = timeTransportToObject + timeStorageToNonGround;
                 }
-                var timesStorageToTransportsSum = LinearExpr.Sum(timesTransportToObject);
+                
+                var timesStorageToTransportsSum = LinearExpr.Sum(timeTransportToObjects) + 0;
+                Model.Add(timesStorageToTransportsSum == 0).OnlyEnforceIf(IsGroundDeliveryVariable);
                 
                 var nonGroundsDeliveryCostsSum = LinearExpr.Sum(deliveryCostTransportToObject) + 0;
-
-                var isEndGroundDelivery = Model.NewBoolVar($"is_end_ground_delivery_{i}_{j}");
-
-                Model.AddMultiplicationEquality(isEndGroundDelivery, IsGroundDeliveryVariable,
-                    TransportsToStoragesAssignVariableMatrix[i, j]);
+                Model.Add(nonGroundsDeliveryCostsSum == 0).OnlyEnforceIf(IsGroundDeliveryVariable);
                 
-                var endGroundDistance = isEndGroundDelivery * DistanceStorageObjectVector[j];
-                
-                var totalDeliveryCost = startDeliveryCost + nonGroundsDeliveryCostsSum + endGroundDistance;
+                var endGroundDistance = IsGroundDeliveryVariable * DistanceStorageObjectVector[j];
 
-                var materialsCostsInStorage = new LinearExpr[MaterialsCount]; 
-                for (var z = 0; z < MaterialsCount; z++)
-                {
-                    if(MaterialParams[j, z] != null) materialsCostsInStorage[z] =
-                        MaterialParams[j, z]!.Cost * MaterialInStorageAssignVariableMatrix[j, z];
-                    materialsCostsInStorage[z] = MaterialInStorageAssignVariableMatrix[j, z] + (int.MaxValue / 2);
-                }
-                var totalMaterialsCosts = LinearExpr.Sum(materialsCostsInStorage); 
-                
+
+                var totalDeliveryCost = startDeliveryCost + nonGroundsDeliveryCostsSum +
+                                        endGroundDistance * GroundTransportInfos[i].Coefficient;
+
                 var timeToObjectFromStorageVariable = Model.NewIntVar(0, int.MaxValue / 3, $"time_{i}_{j}_end");
-                    
-                Model.AddDivisionEquality(timeToObjectFromStorageVariable, endGroundDistance, GroundTransportInfos[i].AverageSpeed);
+                
+                Model.AddDivisionEquality(timeToObjectFromStorageVariable, endGroundDistance,
+                    GroundTransportInfos[i].AverageSpeed);
 
                 var totalTimeInPath = timeToStorageVariable + timesStorageToTransportsSum + timeToObjectFromStorageVariable;
                 
                 times.Add(totalTimeInPath);
                 
+                var materialsCostsInStorage = new LinearExpr[MaterialsCount]; 
+                for (var z = 0; z < MaterialsCount; z++)
+                {
+                    materialsCostsInStorage[z] = MaterialInStorageAssignVariableMatrix[j, z] * (
+                        (MaterialParams[j, z] == null) ? 0 : MaterialParams[j, z]!.PricePerUnit);
+                }
+                var totalMaterialsCosts = LinearExpr.Sum(materialsCostsInStorage); 
                 costs.Add(totalDeliveryCost + totalMaterialsCosts);
             }
         }
 
-        var totalTime = LinearExpr.Sum(times);
         var totalCost = LinearExpr.Sum(costs);
+        var totalTime = LinearExpr.Sum(times);
 
-        Model.Minimize(totalTime);
         Model.Minimize(totalCost);
+        Model.Minimize(totalTime);
     }
 }

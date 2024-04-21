@@ -43,8 +43,10 @@ public class CostMinimizationSolver : CpSatAlgorithmBaseSolver
                 Model.Add(nonGroundsDeliveryCostsSum == 0).OnlyEnforceIf(IsGroundDeliveryVariable);
                 
                 var endGroundDistance = IsGroundDeliveryVariable * DistanceStorageObjectVector[j];
-                
-                var totalDeliveryCost = startDeliveryCost + nonGroundsDeliveryCostsSum + endGroundDistance;
+
+
+                var totalDeliveryCost = startDeliveryCost + nonGroundsDeliveryCostsSum +
+                                        endGroundDistance * GroundTransportInfos[i].Coefficient;
 
                 var materialsCostsInStorage = new LinearExpr[MaterialsCount]; 
                 for (var z = 0; z < MaterialsCount; z++)

@@ -1,4 +1,5 @@
-﻿using Backand.AlgorithmEntities;
+﻿using System.Collections.Concurrent;
+using Backand.AlgorithmEntities;
 using Backand.DbEntities;
 using Backand.FrontendEntities.AlgorithmResponse;
 using Backand.FrontendEntities.Requests;
@@ -171,6 +172,8 @@ public class AlgorithmService
 			        .BuildSolverFromFilterMethod(filter.FilterMethod);
 		        
 		        var resultInfos = solver.GetResult();
+
+		        var trackIdsDictionary = new ConcurrentDictionary<(int groundIndex, int nonGroundIndex), Guid>();
 		        
 		        foreach (var resultInfo in resultInfos)
 		        {
@@ -179,6 +182,8 @@ public class AlgorithmService
 			        var nonGroundIndex = resultInfo.NonGroundTransportIndex;
 			        var groundIndex = resultInfo.GroundTransportIndex;
 
+			        var trackId = trackIdsDictionary.GetOrAdd((groundIndex, nonGroundIndex), Guid.NewGuid());
+			        
 			        var buildInfo = new BuildInfo
 			        {
 				        ConstructionUnitName = constructionUnits[materialIndex].Name,
@@ -208,6 +213,7 @@ public class AlgorithmService
 
 			        var groundLogisticInfo = new LogisticInfo
 			        {
+				        TrackId = trackId,
 				        LogisticCompanyName = (fleet != null && logisticCompany != null)
 					        ? logisticCompany.Name
 					        : "Неопределено",
@@ -243,6 +249,7 @@ public class AlgorithmService
 				        
 				        var nonGroundLogisticInfo = new LogisticInfo()
 				        {
+					        TrackId = trackId,
 					        LogisticCompanyName = (nonGroundFleet != null && nonGroundLogisticCompany != null)
 						        ? nonGroundLogisticCompany.Name
 						        : "Неопределено",
