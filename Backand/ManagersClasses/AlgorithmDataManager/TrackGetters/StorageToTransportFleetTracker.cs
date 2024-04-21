@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backand.ManagersClasses.AlgorithmDataManager.TrackGetters
 {
-	public class StorageToTransportFleetTracker : TracksGetter<StorageToTransportFleetDistance>
-	{
-		public StorageToTransportFleetTracker(ApplicationContext dbContext, DistanceService distanceService) : base(dbContext, distanceService) { }
+    public class StorageToTransportFleetTracker : TracksGetter<StorageToTransportFleetDistance>
+    {
+        public StorageToTransportFleetTracker(ApplicationContext dbContext, DistanceService distanceService) : base(dbContext, distanceService) { }
 
-		protected override DbSet<StorageToTransportFleetDistance> TrackDbTable => dbContext.StorageToTransportFleetDistance;
+        protected override DbSet<StorageToTransportFleetDistance> TrackDbTable => dbContext.StorageToTransportFleetDistance;
 
 		protected override StorageToTransportFleetDistance ConstructNewTrack(MissingDistance missing, decimal distance) => 
 			new() 
-			{ 
+        {
 				Distance = distance, 
 				StorageId=missing.Index1, 
 				TransportFleetId=missing.Index2
@@ -27,5 +27,5 @@ namespace Backand.ManagersClasses.AlgorithmDataManager.TrackGetters
 
 		protected override bool IsRequiredDistance(StorageToTransportFleetDistance distance, UnitIdWithCoordinates storage, UnitIdWithCoordinates transportFleet) =>
 			distance.TransportFleetId == transportFleet.Id && distance.StorageId == storage.Id;
-	}
+    }
 }

@@ -15,7 +15,7 @@ namespace Backand.AlgorithmEntities
 		public string TransportTypeName { get; init; } = null!;
 		public string TransportModeName { get; init; } = null!;
 		public double AverageSpeed { get; init; }
-		public int CompanyId { get; set; }
+		public int CompanyId { get; init; }
 		public string CompanyName { get; init; } = null!;
 		public int CompanyTypeId { get; init; }
 	}

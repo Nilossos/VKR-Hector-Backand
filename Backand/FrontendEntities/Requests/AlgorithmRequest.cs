@@ -32,7 +32,6 @@ namespace Backand.FrontendEntities.Requests
 
 	public class CertainLogists
 	{
-		[JsonPropertyName("ids")]
 		public List<int> Ids { get; init; }
 	}
 

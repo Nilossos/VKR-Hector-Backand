@@ -1,6 +1,6 @@
 ﻿namespace Backand.DbEntites
 {
-    public enum BuildWay
+    public enum BuildWay:int
     {
         Placer=1,
         Block

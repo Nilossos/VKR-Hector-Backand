@@ -1,18 +1,22 @@
 using Backand;
 using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.ManagersClasses;
 using Backand.ManagersClasses.AlgorithmDataManager;
 using Backand.Services;
 using Backand.Services.WebDriverServiceSpace;
-using static Newtonsoft.Json.JsonConvert;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder();
+IServiceCollection services =builder.Services;
 builder.Configuration.AddJsonFile("external_services.json");
-builder.Services.AddWebDriverService();
-builder.Services.AddDistanceService();
+services.AddWebDriverService();
+services.AddDistanceService();
 string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-builder.Services.AddCors(options =>
+services.AddCors(options =>
 {
 	options.AddPolicy(name: MyAllowSpecificOrigins,
 					  policy =>
@@ -23,7 +27,7 @@ builder.Services.AddCors(options =>
 					  });
 });
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-builder.Services.AddDbContext<ApplicationContext>();
+services.AddDbContext<ApplicationContext>();
 var app = builder.Build();
 app.UseCors(MyAllowSpecificOrigins);
 
@@ -190,23 +194,23 @@ app.MapPost("/algorithm", AlgorithmDataManagers.CalculateOrderCostTime);
 
 app.MapGet("/distance", async (DistanceService ds,HttpContext context) =>
 {
-	try
-	{
-		var routes_str = context.Request.Query["routes"].ToString().Replace(" ", "");
-		var routes = DeserializeObject<double[][]>(routes_str);
-		var dist = await ds.GetDistance(routes);
-		return Results.Json(dist);
-	}
-	catch (Exception e)
-	{
-		context.Response.StatusCode = StatusCodes.Status400BadRequest;
-		return Results.Json(new BaseResponse(true, e.Message));
-	}
+    try
+    {
+        var routes_str = context.Request.Query["routes"].ToString().Replace(" ", "");
+        var routes = JsonConvert.DeserializeObject<double[][]>(routes_str);
+        var dist = await ds.GetDistance(routes);
+        return Results.Json(dist);
+    }
+    catch (Exception e)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        return Results.Json(new BaseResponse(true, e.Message));
+    }
 });
 
 var fields = typeof(StorageToObjectsDistance).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
 foreach (var field in fields)
-	Console.WriteLine(field);
+    Console.WriteLine(field);
 
-app.Run();
+app.Run("http://localhost:3002");
