@@ -1,11 +1,14 @@
-﻿using Backand.FrontendEntities;
+﻿using Backand.DbEntites;
+using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
+using Backand.FrontendEntities.Requests;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities.ConstructionSpace
 {
+    [JsonConverter(typeof(ConstructionSerializer))]
     public partial class Construction
     {
         public int ConstructionId { get; set; } = 0;
@@ -19,7 +22,10 @@ namespace Backand.DbEntities.ConstructionSpace
         public BuildState ConstructionStateId { get; set; }
         [JsonIgnore]
         public ConstructionState? ConstructionState { get; set; }
-
+        [ForeignKey(nameof(BuildWay))]
+        public BuildWay? BuildWayId { get; set; }
+        [JsonIgnore]
+        public ConstructionUnitType? BuildWay { get; set; }
 
         [JsonIgnore]
         public Objects? Object { get; set; }

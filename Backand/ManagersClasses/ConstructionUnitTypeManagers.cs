@@ -22,7 +22,7 @@ namespace Backand.ManagersClasses
             List<ConstructionUnitType> list;
             using (ApplicationContext db = new ApplicationContext())
                 list = db.ConstructionUnitType.ToList();
-            ConstructionUnitType item = list.FirstOrDefault((c) => c.ConstructionUnitTypeId == id);
+            ConstructionUnitType item = list.FirstOrDefault((c) => (int)c.ConstructionUnitTypeId == id);
             if (item != null)
             {
                 await context.Response.WriteAsJsonAsync(item);
@@ -83,7 +83,7 @@ namespace Backand.ManagersClasses
         }
 
         //Delete field 
-        public static async void DeleteConstructionUnitType(HttpContext context, int id)
+        public static async void DeleteConstructionUnitType(HttpContext context, BuildWay id)
         {
             /*   List<Mine> mines;
                // если пользователь найден, удаляем его

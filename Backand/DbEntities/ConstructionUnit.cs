@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Backand.DbEntites;
+using System;
 using System.Collections.Generic;
 
 namespace Backand.DbEntities;
@@ -7,7 +8,7 @@ public partial class ConstructionUnit
 {
     public int ConstructionUnitId { get; set; }
 
-    public int ConstructionUnitTypeId { get; set; }
+    public BuildWay ConstructionUnitTypeId { get; set; }
 
     public string Name { get; set; }
 

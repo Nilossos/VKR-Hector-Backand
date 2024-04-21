@@ -3,6 +3,8 @@ using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace Backand.ManagersClasses
 {
@@ -28,6 +30,7 @@ namespace Backand.ManagersClasses
                     Select(c=>c.Link).ToArray();
                 return _links;
             });
+            
             return Results.Json(links);
         }
         private static async Task<(EntityLink,Objects)> GetObjectsLink(ApplicationContext dbContext,Construction c)
@@ -79,7 +82,8 @@ namespace Backand.ManagersClasses
                 var cEntry = dbContext.Entry(construction);
                 await cEntry.Reference(c => c.ConstructionState).LoadAsync();
                 await cEntry.Reference(c => c.ConstructionType).LoadAsync();
-                return Results.Json(construction);
+               
+                return Results.Json(construction, new JsonSerializerOptions() { PropertyNamingPolicy=new CustomCammelCase(), WriteIndented=true}) ;
             }
             else
             {
@@ -96,21 +100,16 @@ namespace Backand.ManagersClasses
             {
                 var constructions = dbContext.Construction;
 
-                Construction? construction = await context.Request.ReadFromJsonAsync<Construction>();
+                Construction? construction = await context.Request.ReadFromJsonAsync<Construction>(new JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy=new CustomCammelCase()
+                });
 
                 if (construction != null)
                 {
-                    ConstructionState? plannedState = await dbContext.ConstructionState.FirstOrDefaultAsync(cs=>
-                                                        cs.ConstructionStateId==BuildState.Planned);
-                    if (plannedState != null) {
-                        construction.ConstructionState = plannedState;
-                        construction.ConstructionId = 0;
-                        await constructions.AddAsync(construction);
-                        await dbContext.SaveChangesAsync();
-                        response = new(false, "Сооружение добавлено!");
-                    }
-                    else
-                        response = new(true, "Состояния строительства 'Запланированно' не существует");
+                    await constructions.AddAsync(construction);
+                    await dbContext.SaveChangesAsync();
+                    response = new(false, "Сооружение добавлено!");
                 }
                 else
                     response = new(true, "Неправильные передаваемые данные о сооружении!");

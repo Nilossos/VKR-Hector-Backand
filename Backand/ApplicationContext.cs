@@ -15,7 +15,6 @@ namespace Backand
 			: base(options)
 		{
 		}
-
 		public virtual DbSet<CoefficientType> CoefficientType { get; set; }
 
 		public virtual DbSet<Company> Company { get; set; }
