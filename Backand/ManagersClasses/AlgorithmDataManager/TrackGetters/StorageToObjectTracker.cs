@@ -8,7 +8,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager.TrackGetters
     public class StorageToObjectTracker : TracksGetter<StorageToObjectsDistance>
     {
         public StorageToObjectTracker(ApplicationContext dbContext, DistanceService distanceService) : base(dbContext, distanceService) { }
-        protected override DbSet<StorageToObjectsDistance> TrackDbTable => dbContext.StorageToObjectDistance;
+        protected override DbSet<StorageToObjectsDistance> TrackDbTable => dbContext.StorageToObjectsDistance;
         protected override StorageToObjectsDistance ConstructNewTrack(MissingDistance missing, decimal distance) =>
             new()
             {
@@ -16,14 +16,14 @@ namespace Backand.ManagersClasses.AlgorithmDataManager.TrackGetters
                 ObjectsId = missing.Index2,
                 Distance = distance
             };
-        protected override IEnumerable<UnitIdWithCoordinates> GetStartpoints()
-        {
-            return dbContext.Storage.Select(s => new UnitIdWithCoordinates { Id = s.StorageId, Coordinates = s.Coordinates });
-        }
-        protected override IEnumerable<UnitIdWithCoordinates> GetEndpoints() => 
-            dbContext.Objects.Select(s => new UnitIdWithCoordinates { Id = s.ObjectsId, Coordinates = s.Coordinates });
 
-        protected override bool IsRequiredDistance(StorageToObjectsDistance distance, UnitIdWithCoordinates storage, UnitIdWithCoordinates endpoint) =>
-            distance.StorageId == storage.Id && distance.ObjectsId == endpoint.Id;
-    }
+		protected override async Task<IEnumerable<UnitIdWithCoordinates>> GetStartpoints() =>
+			await dbContext.Storage.Select(s => new UnitIdWithCoordinates { Id = s.StorageId, Coordinates = s.Coordinates }).ToListAsync();
+
+		protected override async Task<IEnumerable<UnitIdWithCoordinates>> GetEndpoints() =>
+			await dbContext.Objects.Select(s => new UnitIdWithCoordinates { Id = s.ObjectsId, Coordinates = s.Coordinates }).ToListAsync();
+
+		protected override bool IsRequiredDistance(StorageToObjectsDistance distance, UnitIdWithCoordinates storage, UnitIdWithCoordinates objects) =>
+			distance.StorageId == storage.Id && distance.ObjectsId == objects.Id;
+	}
 }

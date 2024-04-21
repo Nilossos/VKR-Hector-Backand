@@ -21,11 +21,6 @@ public partial class TransportFleet
 
     public Spot Spot { get => Coordinates.ToSpot(); }
 
-    [JsonIgnore]
-    public NpgsqlPoint Coordinates { get; set; }
-
-    public Spot Spot { get => Coordinates.ToSpot(); }
-
     public virtual Company? Company { get; set; }
 
     public virtual Region? Region { get; set; }

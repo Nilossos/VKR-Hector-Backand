@@ -14,78 +14,29 @@ using static Backand.ManagersClasses.AlgorithmDataManager.Delivery;
 namespace Backand.ManagersClasses.AlgorithmDataManager
 {
 	public class AlgorithmDataManagers : DbRequests
-		{
-			var companyNamesQuery = (from logCompany in dbContext.LogisticCompany select new { CompanyId = logCompany.LogisticCompanyId, CompanyName = logCompany.Name })
-				.Union(from manufact in dbContext.Manufacturer select new { CompanyId = manufact.ManufacturerId, CompanyName = manufact.Name });
-
-			var query = (from deliveryRegion in dbContext.DeliveryRegion
-							   join trOnFleet in dbContext.TransportFleet_Transport on deliveryRegion.TransportFleet_TransportId equals trOnFleet.TransportFleet_TransportId
-							   join transport in dbContext.Transport on trOnFleet.TransportId equals transport.TransportId
-							   join trMode in dbContext.TransportMode on transport.TransportModeId equals trMode.TransportModeId
-							   join trType in dbContext.TransportType on trMode.TransportTypeId equals trType.TransportTypeId
-							   join trFleet in dbContext.TransportFleet on trOnFleet.TransportFleetId equals trFleet.TransportFleetId
-							   join company in dbContext.Company on trFleet.CompanyId equals company.CompanyId
-							   join companyName in companyNamesQuery on company.CompanyId equals companyName.CompanyId
-							   join coefType in dbContext.CoefficientType on trOnFleet.CoefficientTypeId equals coefType.CoefficientTypeId
-							   select new
-							   {
-								   deliveryRegion.RegionId,
-								   TransportOnFleet = new TransportOnFleet
-								   {
-									   TransportId = transport.TransportId,
-									   TransportName = transport.Name,
-									   TransportFleet = trFleet,
-									   CoefficientTypeId = trOnFleet.CoefficientTypeId,
-									   CoefficientTypeName = coefType.Name,
-									   CoefficientValue = trOnFleet.CoefficientValue,
-									   TransportTypeId = trType.TransportTypeId,
-									   TransportTypeName = trType.Name,
-									   TransportModeName = trMode.Name,
-									   AverageSpeed = trOnFleet.AverageSpeed,
-									   CompanyId = company.CompanyId,
-									   CompanyName = companyName.CompanyName,
-									   CompanyTypeId = company.CompanyTypeId
-								   }
-							   }).GroupBy(t => t.TransportOnFleet).ToListAsync();
-			//.Select(g => new TransportOnFleetWithRegions
-			//{
-			//	TransportOnFleet = g.Key,
-			//	RegionIds = g.Select(r => (int)r.RegionId!).ToArray()
-			//})
-			//.ToListAsync();
-
-			
-
-			return query;
-
-			//join companyNames in (await dbContext.LogisticCompany.ToListAsync()).Select(c => new { CompanyId = c.LogisticCompanyId, CompanyName = c.Name })
-			// .Union((await dbContext.Manufacturer.ToListAsync()).Select(c => new { CompanyId = c.ManufacturerId, CompanyName = c.Name })).ToList()
-			//on company.CompanyId equals companyNames.CompanyId
-
-
-		}
+	{
 
 		private static Dictionary<int, List<ConstructionUnitSupplemented>> GetMaterialsSetsWithConstructionTypes(List<MaterialSet> materialSets, ApplicationContext dbContext, int constructionTypeId) =>
 			(from mSet in materialSets
-					where mSet.ConstructionTypeId == constructionTypeId
-					join mSet_cUnit in dbContext.MaterialSet_ConstructionUnit on mSet.MaterialSetId equals mSet_cUnit.MaterialSetId
-					join cUnit in dbContext.ConstructionUnit on mSet_cUnit.ConstructionUnitId equals cUnit.ConstructionUnitId
-					join cUnitType in dbContext.ConstructionUnitType on cUnit.ConstructionUnitTypeId equals cUnitType.ConstructionUnitTypeId
-					join measureUnit in dbContext.MeasureUnit on cUnit.MeasureUnitId equals measureUnit.MeasureUnitId
-					select new
-					{
-						mSet.MaterialSetId,
-						ConstructionUnitWithAmount = new ConstructionUnitSupplemented
-						{
-							ConstructionUnitId = cUnit.ConstructionUnitId,
-							ConstructionUnitTypeId = cUnit.ConstructionUnitTypeId,
-							MeasureUnitId = cUnit.MeasureUnitId,
-							Name = cUnit.Name,
-							TypeName = cUnitType.Name,
-							MeasureUnitName = measureUnit.Name,
-							Amount = mSet_cUnit.Amount
-						}
-					})
+			 where mSet.ConstructionTypeId == constructionTypeId
+			 join mSet_cUnit in dbContext.MaterialSet_ConstructionUnit on mSet.MaterialSetId equals mSet_cUnit.MaterialSetId
+			 join cUnit in dbContext.ConstructionUnit on mSet_cUnit.ConstructionUnitId equals cUnit.ConstructionUnitId
+			 join cUnitType in dbContext.ConstructionUnitType on cUnit.ConstructionUnitTypeId equals cUnitType.ConstructionUnitTypeId
+			 join measureUnit in dbContext.MeasureUnit on cUnit.MeasureUnitId equals measureUnit.MeasureUnitId
+			 select new
+			 {
+				 mSet.MaterialSetId,
+				 ConstructionUnitWithAmount = new ConstructionUnitSupplemented
+				 {
+					 ConstructionUnitId = cUnit.ConstructionUnitId,
+					 ConstructionUnitTypeId = cUnit.ConstructionUnitTypeId,
+					 MeasureUnitId = cUnit.MeasureUnitId,
+					 Name = cUnit.Name,
+					 TypeName = cUnitType.Name,
+					 MeasureUnitName = measureUnit.Name,
+					 Amount = mSet_cUnit.Amount
+				 }
+			 })
 			.GroupBy(m => m.MaterialSetId)
 			.ToDictionary(
 				group => group.Key,
@@ -122,9 +73,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			List<MaterialSet> materialSets = await dbContext.MaterialSet.ToListAsync();
 			List<StorageMaterial> storagesMaterialsAll = await GetStoragesMaterialsAsync(dbContext);
 
-			TransportFleetToObjectTracker transportFleetToObject = new(dbContext,distanceService);
-			StorageToObjectsTracker storageToObjects = new(dbContext,distanceService);
-			StorageToTransportFleetTracker storageToFleet = new(dbContext,distanceService);
+			TransportFleetToObjectTracker transportFleetToObject = new(dbContext, distanceService);
+			StorageToObjectsTracker storageToObjects = new(dbContext, distanceService);
+			StorageToTransportFleetTracker storageToFleet = new(dbContext, distanceService);
 
 			List<StorageToObjectsDistance> storageToObjectsDistances = await storageToObjects.GetTrackToEndpoints();
 			List<StorageToTransportFleetDistance> storageToTransportFleetDistances = await storageToFleet.GetTrackToEndpoints();
@@ -144,7 +95,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 			foreach (var constructionOption in constructionOptions)
 			{
-                (Objects objectsToDeliver, int constructionTypeId) = constructions
+				(Objects objectsToDeliver, int constructionTypeId) = constructions
 					.Where(c => c.ConstructionId == constructionOption.ConstructionId)
 					.Select(c => (c.Object!, c.ConstructionTypeId))
 					.First();
@@ -158,7 +109,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 				foreach (var constructionMaterialSet in constructionMaterialSets)
 				{
 					var constructionUnits = constructionMaterialSet.Value;
-                    bool isAssemblyBuildRequired = !objectsToDeliver.ContainsAssemblyShop && (BuildType)constructionUnits[0].ConstructionUnitTypeId == BuildType.Block;
+					bool isAssemblyBuildRequired = !objectsToDeliver.ContainsAssemblyShop && (BuildType)constructionUnits[0].ConstructionUnitTypeId == BuildType.Block;
 
 					//пропускаем тип постройки, который отключен фильтром
 					if (allowedBuildType != BuildType.NoMatter && (BuildType)constructionUnits[0].ConstructionUnitTypeId != allowedBuildType)
@@ -260,11 +211,11 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			deliveryVariant.DeliveryRouteParams.All(d => d.TransportOnFleet.CompanyTypeId == (int)CompanyType.LogisticCompany || storagesManufacturer[deliveryVariant.StorageId].ManufacturerId == d.TransportOnFleet.CompanyId);
 
 		static void FillOrderVariantWithMaterial(ShortOrderVariant orderVariant, int materialIndex, MaterialParams materialVariant)
-				{
+		{
 			orderVariant.MaterialCosts[materialIndex] = materialVariant.Cost;
 			orderVariant.MaterialPricesPerUnit[materialIndex] = materialVariant.PricePerUnit;
 			orderVariant.Cost += materialVariant.Cost;
-				}
+		}
 
 		static void UpdateIndices(int[] storageIndices, int materialsCount)
 		{
