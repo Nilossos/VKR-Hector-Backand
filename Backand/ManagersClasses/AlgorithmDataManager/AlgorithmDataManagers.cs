@@ -6,8 +6,8 @@ using Backand.Services;
 using Backand.ManagersClasses.AlgorithmDataManager.TrackGetters;
 using Backand.FrontendEntities.AlgorithmResponse;
 using Backand.DbEntities.ConstructionSpace;
+using Backand.Services.AlgorithmServices;
 using static Backand.ManagersClasses.AlgorithmDataManager.InnerDataRequests;
-using static Backand.ManagersClasses.AlgorithmDataManager.DataFiltering;
 using static Backand.ManagersClasses.AlgorithmDataManager.DataSorting;
 using static Backand.ManagersClasses.AlgorithmDataManager.Delivery;
 
@@ -15,53 +15,6 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 {
 	public class AlgorithmDataManagers : DbRequests
 	{
-
-		private static Dictionary<int, List<ConstructionUnitSupplemented>> GetMaterialsSetsWithConstructionTypes(List<MaterialSet> materialSets, ApplicationContext dbContext, int constructionTypeId) =>
-			(from mSet in materialSets
-			 where mSet.ConstructionTypeId == constructionTypeId
-			 join mSet_cUnit in dbContext.MaterialSet_ConstructionUnit on mSet.MaterialSetId equals mSet_cUnit.MaterialSetId
-			 join cUnit in dbContext.ConstructionUnit on mSet_cUnit.ConstructionUnitId equals cUnit.ConstructionUnitId
-			 join cUnitType in dbContext.ConstructionUnitType on cUnit.ConstructionUnitTypeId equals cUnitType.ConstructionUnitTypeId
-			 join measureUnit in dbContext.MeasureUnit on cUnit.MeasureUnitId equals measureUnit.MeasureUnitId
-			 select new
-			 {
-				 mSet.MaterialSetId,
-				 ConstructionUnitWithAmount = new ConstructionUnitSupplemented
-				 {
-					 ConstructionUnitId = cUnit.ConstructionUnitId,
-					 ConstructionUnitTypeId = cUnit.ConstructionUnitTypeId,
-					 MeasureUnitId = cUnit.MeasureUnitId,
-					 Name = cUnit.Name,
-					 TypeName = cUnitType.Name,
-					 MeasureUnitName = measureUnit.Name,
-					 Amount = mSet_cUnit.Amount
-				 }
-			 })
-			.GroupBy(m => m.MaterialSetId)
-			.ToDictionary(
-				group => group.Key,
-				group => group.Select(g => g.ConstructionUnitWithAmount).ToList()
-			);
-
-		private static List<TransportOnFleetWithRegions> FilterFleetsByLogisticCompanies(List<TransportOnFleetWithRegions> transportsOnFleets, ConstructionOption constructionOption)
-		{
-			if (constructionOption.Filter.CertainManufacturers.Ids.Count > 0)
-				return transportsOnFleets
-					.Where(t => constructionOption.Filter.CertainLogists.Ids.Contains(t.TransportOnFleet!.CompanyId))
-					.ToList();
-			else
-				return transportsOnFleets;
-		}
-
-		static List<StorageMaterial> FilterMaterialsByManufacturers(List<StorageMaterial> storagesMaterials, ConstructionOption constructionOption)
-		{
-			if (constructionOption.Filter.CertainLogists.Ids.Count > 0)
-				return storagesMaterials
-					.Where(m => constructionOption.Filter.CertainManufacturers.Ids.Contains(m.ManufacturerId))
-					.ToList();
-			else
-				return storagesMaterials;
-		}
 
 		static async Task<AlgorithmData> LoadData(ApplicationContext dbContext, DistanceService distanceService)
 		{
@@ -102,7 +55,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 				FillDeliveryVariants(dataTuple, constructionOption, objectsToDeliver);
 
-				List<StorageMaterial> storagesMaterials = FilterMaterialsByManufacturers(storagesMaterialsAll, constructionOption);
+				List<StorageMaterial> storagesMaterials = DataFiltering.FilterMaterialsByManufacturers(storagesMaterialsAll, constructionOption);
 				var constructionMaterialSets = GetMaterialsSetsWithConstructionTypes(materialSets, dbContext, constructionTypeId);
 				BuildType allowedBuildType = constructionOption.Filter.BuildType;
 
@@ -111,7 +64,6 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 					var constructionUnits = constructionMaterialSet.Value;
 					bool isAssemblyBuildRequired = !objectsToDeliver.ContainsAssemblyShop && (BuildType)constructionUnits[0].ConstructionUnitTypeId == BuildType.Block;
 
-					//пропускаем тип постройки, который отключен фильтром
 					if (allowedBuildType != BuildType.NoMatter && (BuildType)constructionUnits[0].ConstructionUnitTypeId != allowedBuildType)
 						continue;
 
@@ -120,7 +72,6 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 					int[] uniqueStorageIds = constructionUnitsFromStorage.Select(cUnit => cUnit.StorageId).Distinct().ToArray();
 					MaterialParams?[,] storageMaterialMatrix = new MaterialParams?[uniqueStorageIds.Length, uniqueConstructionUnitIds.Length];
-					MaterialParams? materialVariant = null;
 
 					for (int storageId = 0; storageId < uniqueStorageIds.Length; storageId++)
 						for (int materialId = 0; materialId < uniqueConstructionUnitIds.Length; materialId++)
@@ -130,13 +81,13 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 								cUnit!.ConstructionUnitId == uniqueConstructionUnitIds[materialId]
 								&& cUnit.StorageId == uniqueStorageIds[storageId], null);
 
-							if (constructionUnitFromStorage is not null)
-								materialVariant = new MaterialParams
+							storageMaterialMatrix[storageId, materialId] = (constructionUnitFromStorage == null)
+								? null
+								: new MaterialParams()
 								{
 									PricePerUnit = constructionUnitFromStorage.PricePerUnit,
-									Amount = (decimal)constructionUnits[materialId].Amount,
+									Amount = (decimal)constructionUnits[materialId].Amount
 								};
-							storageMaterialMatrix[storageId, materialId] = materialVariant;
 						}
 
 					var storagesManufacturer = GetManufacturersByStorageIds(uniqueStorageIds, dbContext, dataTuple);
@@ -144,13 +95,20 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 					var orderVariants = CalculateOrderVariants(storageMaterialMatrix, uniqueStorageIds, storagesManufacturer);
 					SortCostAndTimeListByFilterMethod(orderVariants, constructionOption.Filter.FilterMethod);
 
-					response.Orders.Add(GetOrderVariantsWithInfo(orderVariants, dataTuple, constructionUnits, storagesManufacturer, isAssemblyBuildRequired));
+					response.Orders.Add(await GetOrderVariantsWithInfoAsync(orderVariants, dataTuple, constructionUnits, storagesManufacturer, isAssemblyBuildRequired, constructionOption.ConstructionId, dbContext));
 				}
 			}
-
 			await context.Response.WriteAsJsonAsync(response);
 		}
 
+		internal static async Task CalculateSimpleOrderCostTime(HttpContext context, ApplicationContext dbContext, DistanceService distanceService, CancellationToken cancellationToken)
+		{
+			var algorithmRequest = await context.Request.ReadFromJsonAsync<AlgorithmRequest>(cancellationToken) ?? throw new NullReferenceException("Пустое тело запроса!");
+			var algorithmService = new AlgorithmService(await LoadData(dbContext, distanceService), dbContext);
+			var results = await algorithmService.GetAlgorithmSolve(algorithmRequest, cancellationToken);
+			await context.Response.WriteAsJsonAsync(results, cancellationToken);
+		}
+		
 		static List<ShortOrderVariant> CalculateOrderVariants(MaterialParams?[,] storageMaterialMatrix, int[] storageIds, Dictionary<int, Manufacturer> storagesManufacturer)
 		{
 			///алгоритм для перебора, к сожалению, всех вариантов
@@ -220,7 +178,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 		static void UpdateIndices(int[] storageIndices, int materialsCount)
 		{
 			storageIndices[0]++;
-
+			
 			for (int materialIndex = 0; storageIndices[materialIndex] == materialsCount && materialIndex < storageIndices.Length - 1; materialIndex++)
 			{
 				storageIndices[materialIndex] = 0;

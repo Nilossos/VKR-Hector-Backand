@@ -6,7 +6,7 @@ namespace Backand.FrontendEntities.Requests
 	{
 		NoMatter = 0,
 		Placer,
-		Block
+		Block 
 	}
 
 	public enum FilterMethod

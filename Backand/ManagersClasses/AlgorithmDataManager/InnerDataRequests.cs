@@ -1,6 +1,10 @@
 ﻿using Backand.AlgorithmEntities;
 using Backand.DbEntities;
+using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities.AlgorithmResponse;
+using Backand.FrontendEntities.Links;
+using Microsoft.EntityFrameworkCore;
+using System.Threading;
 
 namespace Backand.ManagersClasses.AlgorithmDataManager
 {
@@ -47,9 +51,26 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 				return distanceObject.Distance;
 		}
 
-		internal static Order GetOrderVariantsWithInfo(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, Manufacturer> storageManufaturers, bool isAssemblyBuildRequired)
+		public static async Task<Construction?> GetConstructionById(ApplicationContext context, int constructionId) => await
+		context
+			.Construction
+			.Include(construction => construction.Object)
+				.ThenInclude(objects => objects!.Mine)
+					.ThenInclude(mine => mine!.Subsidiary)
+			.Include(construction => construction.ConstructionType)
+			.FirstOrDefaultAsync(construction => construction.ConstructionId == constructionId);
+
+		internal static async Task<Order> GetOrderVariantsWithInfoAsync(List<ShortOrderVariant> orderVariants, AlgorithmData data, List<ConstructionUnitSupplemented> constructionUnits, Dictionary<int, Manufacturer> storageManufaturers, bool isAssemblyBuildRequired, int constructionId, ApplicationContext context)
 		{
-			Order order = new() { IsAssemblyBuildRequired = isAssemblyBuildRequired };
+			Order order = new(); // { IsAssemblyBuildRequired = isAssemblyBuildRequired };
+
+			var construction = await GetConstructionById(context, constructionId) ??
+							   throw new NullReferenceException();
+
+			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
+			order.Objects = new EntityLink { Id = construction.ObjectsId, Name = construction.Object.Name! };
+			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
+			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };
 
 			for (int i = 0; i < orderVariants.Count; i++)
 			{

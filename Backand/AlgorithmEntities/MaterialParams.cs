@@ -4,6 +4,6 @@
 	{
 		public decimal PricePerUnit { get; set; }
 		public decimal Amount { get; set; }
-		public decimal Cost { get => PricePerUnit * Amount; }
+		public decimal Cost => PricePerUnit * Amount;
 	}
 }

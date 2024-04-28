@@ -78,8 +78,10 @@ namespace Backand
 
 		public virtual DbSet<UserType> UserType { get; set; }
 
-		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => 
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
 			optionsBuilder.UseNpgsql(AppContextOptions.Options);
+		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
