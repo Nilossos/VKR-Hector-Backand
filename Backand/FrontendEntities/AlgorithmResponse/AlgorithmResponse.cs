@@ -5,6 +5,6 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 {
 	public class AlgorithmResponse
 	{
-		public List<Order> Orders { get; init; } = null!;
+		public List<Order> Orders { get; init; } = new();
 	}
 }
