@@ -15,6 +15,7 @@ namespace Backand
 		public ApplicationContext(DbContextOptions<ApplicationContext> options)
 			: base(options)
 		{
+			Database.EnsureCreated();
 		}
 		public virtual DbSet<CoefficientType> CoefficientType { get; set; }
 

@@ -16,11 +16,9 @@ namespace Backand.DbEntities.ConstructionSpace
         public int ObjectsId { get; set; }
 
         public int ConstructionTypeId { get; set; }
-        [JsonIgnore]
         public ConstructionType? ConstructionType { get; set; }
         public string ConstructionName { get; set; }
         public BuildState ConstructionStateId { get; set; }
-        [JsonIgnore]
         public ConstructionState? ConstructionState { get; set; }
         [ForeignKey(nameof(BuildWay))]
         public BuildWay? BuildWayId { get; set; }
