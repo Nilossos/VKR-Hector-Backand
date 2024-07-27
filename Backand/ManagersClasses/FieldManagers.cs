@@ -16,7 +16,8 @@ namespace Backand.ManagersClasses
         //Get all fields
         public static async Task<IResult> GetAllMines(ApplicationContext context)
         {
-           
+            var data = context.Mine.Select(m=>m.MineId);
+
             var mines = await Task.Run(() => context.Mine.
                 Select(
                     mine => new MineLink

@@ -17,7 +17,10 @@ namespace Backand.ManagersClasses
 
             List<Construction> constructions;
             using (ApplicationContext db = new ApplicationContext())
+            {
                 constructions = db.Construction.ToList();
+            }
+            
             await context.Response.WriteAsJsonAsync(constructions);
         }
         //Get by object id
@@ -82,8 +85,8 @@ namespace Backand.ManagersClasses
                 var cEntry = dbContext.Entry(construction);
                 await cEntry.Reference(c => c.ConstructionState).LoadAsync();
                 await cEntry.Reference(c => c.ConstructionType).LoadAsync();
-               
-                return Results.Json(construction, new JsonSerializerOptions() { PropertyNamingPolicy=new CustomCammelCase(), WriteIndented=true}) ;
+
+                return Results.Json(construction, new JsonSerializerOptions() { PropertyNamingPolicy = new CustomCammelCase(), WriteIndented = true });
             }
             else
             {

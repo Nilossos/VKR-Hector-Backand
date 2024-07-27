@@ -1,14 +1,12 @@
 using Backand;
 using Backand.DbEntities;
-using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.ManagersClasses;
 using Backand.ManagersClasses.AlgorithmDataManager;
 using Backand.Services;
 using Backand.Services.WebDriverServiceSpace;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder();
 IServiceCollection services =builder.Services;
@@ -27,6 +25,7 @@ services.AddCors(options =>
 					  });
 });
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 services.AddDbContext<ApplicationContext>();
 var app = builder.Build();
 app.UseCors(MyAllowSpecificOrigins);
