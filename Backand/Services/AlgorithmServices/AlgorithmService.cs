@@ -6,6 +6,7 @@ using Backand.Services.AlgorithmServices.AlgorithmPreparers;
 using Backand.Services.AlgorithmServices.AlgorithmSolvers.Builders;
 using Backand.Services.AlgorithmServices.AlgorithmSolvers.Parameters;
 using Backand.FrontendEntities.Links;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Backand.Services.AlgorithmServices;
 
@@ -58,6 +59,9 @@ public class AlgorithmService
 	        var order = new Order();
 	        var filter = constructionOption.Filter;
 	        var filterTransportTypes = filter.TransportTypeIds;
+
+			if (filterTransportTypes.IsNullOrEmpty())
+                filterTransportTypes = await _dataPreparer.GetAllTransportTypeIds(cancellationToken);
 	        
 	        var constructionId = constructionOption.ConstructionId;
 	        

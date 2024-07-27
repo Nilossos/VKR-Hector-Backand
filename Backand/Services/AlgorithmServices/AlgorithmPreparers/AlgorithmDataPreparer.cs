@@ -23,6 +23,9 @@ public class AlgorithmDataPreparer
 			.Include(construction => construction.ConstructionType)
 			.FirstOrDefaultAsync(construction => construction.ConstructionId == constructionId, cancellationToken);
 
+	public async Task<int[]> GetAllTransportTypeIds(CancellationToken cancellationToken) =>
+		await _applicationContext.TransportType.Select(t => t.TransportTypeId).ToArrayAsync(cancellationToken);
+
 	public async Task<StorageToObjectsDistance[]> GetStorageToConstructionDistanceInfoVector(Objects constructionObject,
 		IEnumerable<int> filterTransportTypes,
 		CancellationToken cancellationToken)
