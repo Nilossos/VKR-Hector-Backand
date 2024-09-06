@@ -1,0 +1,8 @@
+{
+  "yamaps": {
+    "protocol": "https",
+    "domain": "api-maps.yandex.ru",
+    "version": "2.1",
+    "apikey": "e1abdcf6-8f6e-4d75-a5d3-b88a335b7f82"
+  }
+}
