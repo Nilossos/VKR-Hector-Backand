@@ -103,13 +103,83 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 		internal static async Task CalculateSimpleOrderCostTime(HttpContext context, ApplicationContext dbContext, DistanceService distanceService, CancellationToken cancellationToken)
 		{
-			var algorithmRequest = await context.Request.ReadFromJsonAsync<AlgorithmRequest>(cancellationToken) ?? throw new NullReferenceException("Пустое тело запроса!");
-			var algorithmService = new AlgorithmService(await LoadData(dbContext, distanceService), dbContext);
-			var results = await algorithmService.GetAlgorithmSolve(algorithmRequest, cancellationToken);
-			await context.Response.WriteAsJsonAsync(results, cancellationToken);
-		}
-		
-		static List<ShortOrderVariant> CalculateOrderVariants(MaterialParams?[,] storageMaterialMatrix, int[] storageIds, Dictionary<int, Manufacturer> storagesManufacturer)
+            try
+            {
+                // Чтение тела запроса
+                var algorithmRequest = await context.Request.ReadFromJsonAsync<AlgorithmRequest>(cancellationToken);
+
+                // Проверка, что тело запроса не пустое
+                if (algorithmRequest == null)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(new { error = "Пустое тело запроса!" }, cancellationToken);
+                    return;
+                }
+
+                // Проверка валидности полей AlgorithmRequest
+                if (!IsValidAlgorithmRequest(algorithmRequest))
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(new { error = "Некорректные данные запроса" }, cancellationToken);
+                    return;
+                }
+
+                // Создание сервиса алгоритма
+                var algorithmService = new AlgorithmService(await LoadData(dbContext, distanceService), dbContext);
+
+                // Выполнение алгоритма
+                var results = await algorithmService.GetAlgorithmSolve(algorithmRequest, cancellationToken);
+
+                // Возврат успешного результата
+                await context.Response.WriteAsJsonAsync(results, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибки и возврат 500
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsJsonAsync(new { error = ex.Message }, cancellationToken);
+            }
+        }
+
+        private static bool IsValidAlgorithmRequest(AlgorithmRequest request)
+        {
+            // Проверяем, есть ли ConstructionOptions
+            if (request.ConstructionOptions == null || !request.ConstructionOptions.Any())
+                return false;
+
+            // Проходим по каждому ConstructionOption и проверяем его валидность
+            foreach (var option in request.ConstructionOptions)
+            {
+                if (option.ConstructionId <= 0)
+                    return false;
+
+                if (option.Filter == null)
+                    return false;
+
+                // Проверяем валидность полей Filter
+                if (!IsValidFilter(option.Filter))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsValidFilter(Filter filter)
+        {
+            //if (filter.FilterMethod == null || filter.BuildType == null)
+            //    return false;
+
+            //if (filter.TransportTypeIds == null || !filter.TransportTypeIds.Any())
+            //    return false;
+
+            //// Проверяем валидность других полей фильтра
+            //if (filter.CertainLogists == null || filter.CertainManufacturers == null)
+            //    return false;
+
+            return true;
+        }
+
+        static List<ShortOrderVariant> CalculateOrderVariants(MaterialParams?[,] storageMaterialMatrix, int[] storageIds, Dictionary<int, Manufacturer> storagesManufacturer)
 		{
 			///алгоритм для перебора, к сожалению, всех вариантов
 			int storagesCount = storageMaterialMatrix.GetLength(0);
