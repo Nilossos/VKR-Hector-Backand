@@ -20,5 +20,22 @@
 		public OrderVariant() { }
 		
 		public bool IsAssemblyBuildRequired { get; set; }
-	}
+        public string ConstructionUnitType { get; set; }
+        public string TransportTypeName { get; set; }
+
+        public string GetUniqueTransportTypes(List<MaterialOrderVariant> materialOrderVariants)
+        {
+            HashSet<string> transportTypes = new HashSet<string>();
+
+            foreach (MaterialOrderVariant variant in materialOrderVariants)
+            {
+                foreach (LogisticInfo logisticInfo in variant.LogisticInfos)
+                {
+                    transportTypes.Add(logisticInfo.TransportTypeName);
+                }
+            }
+
+            return string.Join(", ", transportTypes);
+        }
+    }
 }

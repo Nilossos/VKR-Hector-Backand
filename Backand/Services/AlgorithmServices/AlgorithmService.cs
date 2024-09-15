@@ -145,8 +145,9 @@ public class AlgorithmService
 		        
 		        orderVariant.MaterialOrderVariants = materialOrderVariants;
 
-		        
-		        orderVariant.IsAssemblyBuildRequired = IsAssemblyRequired(constructionObject, constructionUnits.First());
+                orderVariant.ConstructionUnitType = constructionUnits.First().TypeName;
+
+                orderVariant.IsAssemblyBuildRequired = IsAssemblyRequired(constructionObject, constructionUnits.First());
 		        
 		        if (!IsValidBuildType(filter, constructionUnits.First())) continue;
 		        var constructionUnitIds = _dataPreparer.GetConstructionUnitIds(constructionUnits);
@@ -236,7 +237,7 @@ public class AlgorithmService
 
 			        if (nonGroundIndex != -1)
 			        {
-				        var nonGroundTransportsInfos =
+                        var nonGroundTransportsInfos =
 					        transportsToObjectInfos.Select(pair => pair.Item1)
 						        .Distinct().ToArray();
 				        var nonGroundTransportInfo = nonGroundTransportsInfos[nonGroundIndex];
@@ -262,12 +263,16 @@ public class AlgorithmService
 				        
 				        materialOrderVariant.LogisticInfos.Add(nonGroundLogisticInfo);
 			        }
+
 			        materialOrderVariants.Add(materialOrderVariant);
 		        }
-		        orderVariant.MaterialOrderVariants = materialOrderVariants;
+
+				orderVariant.TransportTypeName = orderVariant.GetUniqueTransportTypes(materialOrderVariants);
+
+                orderVariant.MaterialOrderVariants = materialOrderVariants;
 		        order.Variants.Add(orderVariant);
-		        result.Add(order);
 	        }
+            result.Add(order);
         }
 
         return new AlgorithmResponse() { Orders = result };
