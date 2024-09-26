@@ -6,9 +6,8 @@
 
 		public OrderResult OrderResult => new()
 		{
-			DeliveryTime = MaterialOrderVariants.Sum(variant => variant.LogisticInfos.Sum(info => info.DeliveryTime)),
-			TotalCost = MaterialOrderVariants.Sum(variant => variant.ProductionInfo.PurchasePrice +
-			                                                 variant.LogisticInfos.Sum(info => info.DeliveryCost))
+			DeliveryTime = MaterialOrderVariants.Max(variant => variant.LogisticInfos.Sum(info => info.DeliveryTime)),
+			TotalCost = MaterialOrderVariants.Sum(variant => variant.ProductionInfo.PurchasePrice + variant.LogisticInfos.Sum(info => info.DeliveryCost))
 		};
 
 		public OrderVariant(IEnumerable<MaterialOrderVariant> materialOrderVariants, OrderResult orderResult)
