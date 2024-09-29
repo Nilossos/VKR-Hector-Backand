@@ -28,6 +28,6 @@ namespace Backand.DbEntities
 		[JsonIgnore]
 		public virtual ICollection<Objects> Objects { get; set; } = new List<Objects>();
 
-		public virtual Subsidiary? Subsidiary { get; set; }
-	}
+        public virtual Subsidiary? Subsidiary { get; set; }
+    }
 }

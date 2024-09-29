@@ -103,6 +103,11 @@ namespace Backand.ManagersClasses
             {
                 var constructions = dbContext.Construction;
 
+
+                //var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
+                //Console.WriteLine("Received JSON:");
+                //Console.WriteLine(requestBody); // Логируем присланный JSON
+
                 Construction? construction = await context.Request.ReadFromJsonAsync<Construction>(new JsonSerializerOptions()
                 {
                     PropertyNamingPolicy=new CustomCammelCase()
@@ -125,58 +130,80 @@ namespace Backand.ManagersClasses
             await context.Response.WriteAsJsonAsync(response);
         }
 
-            //Update object
-        public static async Task UpdateConstruction(HttpContext context)
+        //Update object
+        public static async Task<IResult> UpdateConstruction(int construction_id_update, HttpContext context, ApplicationContext dbContext)
         {
-            /*Construction constructionData = await context.Request.ReadFromJsonAsync<Construction>();
+            //var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
+            //Console.WriteLine("Received JSON:");
+            //Console.WriteLine(requestBody); // Логируем присланный JSON
+
+            Construction? constructionData = await context.Request.ReadFromJsonAsync<Construction>(new JsonSerializerOptions()
+            {
+                PropertyNamingPolicy = new CustomCammelCase()
+            });
+            var a = 1;
             if (constructionData != null)
             {
-                List<Construction> constructions;
-
-                using (ApplicationContext db = new ApplicationContext())
+                var construction = await dbContext.Construction.FindAsync(construction_id_update);
+                if (construction != null)
                 {
-                    constructions = db.Construction.ToList();
-                    var construction = constructions.FirstOrDefault(c => c.ConstructionId == constructionData.ConstructionId);
-                    if (construction != null)
+                    if (construction.ConstructionState.Name == "Запланировано")
                     {
-                        construction.Name = constructionData.Name;
-                        construction.Description = constructionData.Description;
-                        construction.IsWorkshop = constructionData.IsWorkshop;
-                        await db.SaveChangesAsync();
-                        await context.Response.WriteAsJsonAsync(construction);
-                    }
+                        // Обновляем поля
+                        construction.ConstructionName = constructionData.ConstructionName;
+                        construction.ConstructionType = constructionData.ConstructionType;
 
+                        await dbContext.SaveChangesAsync();
+
+                        return Results.Json(construction); // Возвращаем обновлённое сооружение
+                    }
                     else
                     {
-                        await context.Response.WriteAsJsonAsync("Construction is null");
+                        context.Response.StatusCode = 404;
+                        return Results.Json(new { message = "Нельзя обновить существующее сооружение" });
                     }
                 }
-            }*/
+                else
+                {
+                    context.Response.StatusCode = 404;
+                    return Results.Json(new { message = "Сооружение не найдено" });
+                }
+            }
+
+            context.Response.StatusCode = 400;
+            return Results.Json(new { message = "Что-то не так с данными сооружения" });
         }
 
         //Delete field 
-        public static async Task<IResult> DeleteConstruction(ApplicationContext dbContext,HttpContext context, int id)
+        public static async Task<IResult> DeleteConstruction(int construction_id_delete, ApplicationContext dbContext,HttpContext context)
         {
             BaseResponse response;
-            var deletable = await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == id);
+            var deletable = await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == construction_id_delete);
             if (deletable != null)
             {
-                try
-                {
-                    dbContext.Construction.Remove(deletable);
-                    await dbContext.SaveChangesAsync();
-                    response = new(false, $"Удание сооружения {id} прошло успешно!");
+                if (deletable.ConstructionStateId == BuildState.Planned) {
+                    try
+                    {
+                        dbContext.Construction.Remove(deletable);
+                        await dbContext.SaveChangesAsync();
+                        response = new(false, $"Удание сооружения {construction_id_delete} прошло успешно!");
+                    }
+                    catch (Exception exc)
+                    {
+                        context.Response.StatusCode = 500;
+                        response = new(true, exc.ToString());
+                    }
                 }
-                catch (Exception exc)
+                else
                 {
-                    context.Response.StatusCode = 500;
-                    response = new(true, exc.ToString());
+                    context.Response.StatusCode = 404;
+                    response = new(true, $"Нельзя удалить существующее сооружение!");
                 }
             }
             else
             {
                 context.Response.StatusCode = 404;
-                response = new(true, $"Не найдено сооружения с id {id}!");
+                response = new(true, $"Не найдено сооружения с id {construction_id_delete}!");
             }
             return Results.Json(response);
         }

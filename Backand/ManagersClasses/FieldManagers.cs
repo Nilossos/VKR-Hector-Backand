@@ -35,13 +35,28 @@ namespace Backand.ManagersClasses
                     }));
             return Results.Json(mines);
         }
-
+        public class MineDto
+        {
+            public Mine Mine { get; set; }
+            public bool IsAssemblyShop { get; set; }
+        }
         //Get field by id 
         public static async Task<IResult> GetMineById(int id, ApplicationContext dbContext)
         {
-            Mine mine = dbContext.Mine.First(m => m.MineId == id);
+            Mine mine = await dbContext.Mine
+                .Include(m => m.Objects)
+                .ThenInclude(o => o.Constructions)
+                .ThenInclude(c => c.ConstructionType)
+                .FirstOrDefaultAsync(m => m.MineId == id);
             await dbContext.Entry(mine).Reference(m => m.Subsidiary).LoadAsync();
-            return Results.Json(mine);
+            bool isAssemblyShop = mine.Objects
+                .SelectMany(o => o.Constructions)
+                .Any(s => s.ConstructionType.IsAssemblyShop);
+            return Results.Json(new MineDto
+            {
+                Mine = mine,
+                IsAssemblyShop = isAssemblyShop
+            });
         }
 
         //Create new field 

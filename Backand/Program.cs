@@ -51,9 +51,9 @@ app.MapGet("/constructions", ConstructionManagers.GetAllConstructions);
 app.MapGet("/constructions/{object_id:int}", ConstructionManagers.GetConstructionsByObjectId);
 app.MapGet("/constructions/planned", ConstructionManagers.GetPlannedConstructions);
 app.MapGet("/construction/{construction_id:int}", ConstructionManagers.GetConstructionById);
-app.MapDelete("/construction/{id}", ConstructionManagers.DeleteConstruction);
+app.MapDelete("/construction/{construction_id_delete:int}", ConstructionManagers.DeleteConstruction);
 app.MapPost("/construction", ConstructionManagers.CreateConstruction);
-//app.MapPut("/constructions", ConstructionManagers.UpdateConstruction);
+app.MapPut("/construction/{construction_id_update:int}", ConstructionManagers.UpdateConstruction);
 
 
 //CRUD FOR ConstructionUnitType
