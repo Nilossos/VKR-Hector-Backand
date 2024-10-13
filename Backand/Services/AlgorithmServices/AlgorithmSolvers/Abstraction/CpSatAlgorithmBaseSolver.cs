@@ -71,11 +71,14 @@ public abstract class CpSatAlgorithmBaseSolver
         InitStoragesToNonGroundTransportsVariablesAndConstrains();
         InitStoragesToNonGroundTransportsConstrains();
     }
-    
+
     /// <summary>
     /// Получить результат.
     /// </summary>
     /// <returns>Результат алгоритма.</returns>
+    /// 
+    //В Solver.Solver отправляется модель и параметры колбека. Если результат не оптимальный возвращается пустой algorithmResult,
+    //в другом случае нормальный callback.Result
     public SolverResult GetResult()
     {
         var callBackParameters = new AlgorithmCallbackParameters(
@@ -94,6 +97,9 @@ public abstract class CpSatAlgorithmBaseSolver
     /// <summary>
     /// Инициализировать ограничения типа транспорта.
     /// </summary>
+    /// 
+
+    //Во всех Init ставятся ограничения в Model (объект or-tools Google)
     private void InitTransportTypeConstrains()
     {
         IsGroundDeliveryVariable = Model.NewBoolVar($"is_only_ground_delivery");

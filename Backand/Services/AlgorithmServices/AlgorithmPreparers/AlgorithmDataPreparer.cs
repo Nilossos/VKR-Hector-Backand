@@ -41,18 +41,18 @@ public class AlgorithmDataPreparer
 			.ToArrayAsync(cancellationToken);
 	}
 
-	public List<int> GetUniqueStorageIds(IEnumerable<StorageToObjectsDistance> storageToObjectsDistances)
+	public List<int> GetUniqueStorageIds(IEnumerable<StorageToObjectsDistance> objectToStoragesDistanceWithInfo)
 	{
-		return storageToObjectsDistances
-			.Select(deliveryInfo => deliveryInfo.Storage.StorageId)
+		return objectToStoragesDistanceWithInfo
+            .Select(deliveryInfo => deliveryInfo.Storage.StorageId)
 			.ToList();
 	}
 
 	public decimal[] GetStorageToConstructionDistanceVector(
-		IEnumerable<StorageToObjectsDistance> storageToObjectsDistances)
+		IEnumerable<StorageToObjectsDistance> objectToStoragesDistanceWithInfo)
 	{
-		return storageToObjectsDistances
-			.Select(s => s.Distance!.Value)
+		return objectToStoragesDistanceWithInfo
+            .Select(s => s.Distance!.Value)
 			.ToArray();
 	}
 

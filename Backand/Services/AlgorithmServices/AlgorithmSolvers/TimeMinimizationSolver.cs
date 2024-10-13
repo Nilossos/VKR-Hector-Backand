@@ -14,6 +14,7 @@ public class TimeMinimizationSolver : CpSatAlgorithmBaseSolver
 {
     public TimeMinimizationSolver(AlgorithmSolverParameters parameters) : base(parameters) { }
     
+    //вроде бы здесь идет заполнение таблиц Model, из которых она будет искать оптимум. Еще проверю
     public override void SetMinimization()
     {
         var times = new List<LinearExpr>(); 

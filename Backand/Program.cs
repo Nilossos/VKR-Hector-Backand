@@ -189,6 +189,7 @@ app.MapPatch("/user/{id:int}", UserManagers.UpdateUser);
 app.MapGet("/construction_types", ConstructionTypeManager.GetTypes);
 app.MapGet("/subsidiaries",SubsidiaryManager.GetSubsidiaries);
 
+//ALGORYTHM 
 app.MapPost("/algorithm", AlgorithmDataManagers.CalculateOrderCostTime);
 app.MapPost("/algorithm1", AlgorithmDataManagers.CalculateSimpleOrderCostTime);
 

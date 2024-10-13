@@ -147,7 +147,7 @@ namespace Backand.ManagersClasses
                 var construction = await dbContext.Construction.FindAsync(construction_id_update);
                 if (construction != null)
                 {
-                    if (construction.ConstructionState.Name == "Запланировано")
+                    if (construction.ConstructionState.ConstructionStateId == BuildState.Planned)
                     {
                         // Обновляем поля
                         construction.ConstructionName = constructionData.ConstructionName;

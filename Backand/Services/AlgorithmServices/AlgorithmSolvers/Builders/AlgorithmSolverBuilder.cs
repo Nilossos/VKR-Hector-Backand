@@ -22,6 +22,8 @@ public class AlgorithmSolverBuilder
 
     public AlgorithmSolverBuilder(AlgorithmSolverParameters parameters) => _parameters = parameters;
 
+    //Здесь solver попадает функция, которая хранится в AlgorithmsConstructorsDictionary. Функция выбирается в зависимости от ключа (filterMethod)
+    //у функции вызывается родительский SetMinimization. В реальности отработает одна из этих: TimeMinimizationSolver, CostMinimizationSolver или TimeAndConstMinimizationSolver
     public CpSatAlgorithmBaseSolver BuildSolverFromFilterMethod(FilterMethod filterMethod)
     {
         var solver = AlgorithmsConstructorsDictionary[filterMethod](_parameters);

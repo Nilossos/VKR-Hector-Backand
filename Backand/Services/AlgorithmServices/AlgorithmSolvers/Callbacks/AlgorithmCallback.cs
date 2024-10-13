@@ -14,6 +14,7 @@ public class AlgorithmCallback : CpSolverSolutionCallback
     public AlgorithmCallback(AlgorithmCallbackParameters parameters) => _parameters = parameters;
     
     public SolverResult Result { get; set; } = new();
+    // по всем таблицам, которые стали заполненными нулями и единицами собираются те места, где есть единицы, которые и обозначают решение. Вроде так.
     
     public override void OnSolutionCallback()
     {
