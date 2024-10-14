@@ -170,7 +170,7 @@ public class AlgorithmDataPreparer
 	}
 	
 	
-	public async Task<(TransportFleet_Transport, StorageToTransportFleetDistance)[]> GetTransportToStorageDistanceInfo(
+	public async Task<(TransportFleet_Transport, StorageToTransportFleetDistance)[]> GetTransportToStorageDistanceInfoGround(
 		ICollection<int> storageIds, IEnumerable<int> transportTypeIds, CancellationToken cancellationToken)
 	{
 		var queryResult =  await _applicationContext.StorageToTransportFleetDistance
@@ -201,14 +201,52 @@ public class AlgorithmDataPreparer
 				.TransportFleet
 				.TransportFleet_Transports
 				.Where(transport =>
-					transport.Transport is { TransportMode.TransportTypeId: not null })
+					transport.Transport is { TransportMode.TransportTypeId: not null } &&
+                    (TransportTypeValue)transport.Transport.TransportMode.TransportTypeId.Value == TransportTypeValue.Ground)
 				.Select(transport => (transport, deliveryInfo))))
 			.OrderBy(pair => Tuple.Create(pair.transport.TransportFleet_TransportId,
 				pair.deliveryInfo.StorageId))
 			.ToArray();
 	}
-	
-	public List<int> GetTransportsIds(IEnumerable<TransportFleet_Transport> transports)
+
+    public async Task<(TransportFleet_Transport, StorageToTransportFleetDistance)[]> GetTransportToStorageDistanceInfoAll(
+    ICollection<int> storageIds, IEnumerable<int> transportTypeIds, CancellationToken cancellationToken)
+    {
+        var queryResult = await _applicationContext.StorageToTransportFleetDistance
+            .Where(deliveryInfo => deliveryInfo.Distance != null &&
+                                   storageIds.Contains(deliveryInfo.StorageId))
+            .Where(deliveryInfo => deliveryInfo
+                .TransportFleet
+                        .TransportFleet_Transports
+                        .Any(transport =>
+                            transport.Transport != null &&
+                            transport.Transport.TransportMode != null &&
+                            transport.Transport.TransportMode.TransportTypeId != null))
+            .Include(deliveryInfo => deliveryInfo.TransportFleet)
+                .ThenInclude(fleet => fleet.TransportFleet_Transports)
+                    .ThenInclude(transport => transport.Transport)
+                        .ThenInclude(transport => transport!.TransportMode)
+                            .ThenInclude(mode => mode!.TransportType)
+            .Include(deliveryInfo => deliveryInfo.TransportFleet)
+                .ThenInclude(fleet => fleet.TransportFleet_Transports)
+                    .ThenInclude(transport => transport.CoefficientType)
+            .Include(deliveryInfo => deliveryInfo.TransportFleet)
+                .ThenInclude(fleet => fleet.Company)
+                    .ThenInclude(company => (company == null) ? null : company.LogisticCompany)
+            .ToListAsync(cancellationToken);
+
+        return queryResult.SelectMany(deliveryInfo => (deliveryInfo
+            .TransportFleet
+            .TransportFleet_Transports
+            .Where(transport =>
+                transport.Transport is { TransportMode.TransportTypeId: not null })
+            .Select(transport => (transport, deliveryInfo))))
+        .OrderBy(pair => Tuple.Create(pair.transport.TransportFleet_TransportId,
+            pair.deliveryInfo.StorageId))
+        .ToArray();
+    }
+
+    public List<int> GetTransportsIds(IEnumerable<TransportFleet_Transport> transports)
 	{
 		return transports.Select(transport => transport.TransportFleet_TransportId)
 			.Distinct()

@@ -63,7 +63,7 @@ public class AlgorithmService
 			///Объект всех фильтров, выбранных для сооружения
 	        var filter = constructionOption.Filter;
 			///Объект фильтра доставки (внутри список id, выбранных типов доставки на фронте)
-	        var filterTransportTypes = filter.TransportTypeIds;
+				var filterTransportTypes = filter.TransportTypeIds;
             ///Если объект фильтра доставки был пустой, то он заполняется всеми типами доставки (3 типа: наземный, воздушный, водный)
             if (filterTransportTypes.IsNullOrEmpty())
                 filterTransportTypes = await _dataPreparer.GetAllTransportTypeIds(cancellationToken);
@@ -94,48 +94,55 @@ public class AlgorithmService
             ///Список дистанций от объекта до каждого склада из objectToStoragesDistanceWithInfo. Каким образом заполняется таблица дистанций?
             var objectToStoragesDistance =
 		        _dataPreparer.GetStorageToConstructionDistanceVector(objectToStoragesDistanceWithInfo);
+
+
+
             ///Список дистанций от каждого склада до каждого элемента "транспорт_парк" (то есть для каждого парка
             ///(в котором есть наземный транспорт)
             ///и сразу для каждого транспорта в парке (почему-то даже для воздушного и водного транспорта))
             ///filterTransportTypes в функции вообще не используется (мб убрать)
-            var transports_FleetsToStoragesDistanceWithInfo = await
-		        _dataPreparer.GetTransportToStorageDistanceInfo(storagesIds, filter.TransportTypeIds, cancellationToken);
+            var transports_FleetsToStoragesDistanceWithInfoGround = await
+		        _dataPreparer.GetTransportToStorageDistanceInfoGround(storagesIds, filter.TransportTypeIds, cancellationToken);
             ///Список элементов "транспорт_парк" (повторяются) из transports_FleetsToStoragesDistanceWithInfo
-            var transports_Fleets = transports_FleetsToStoragesDistanceWithInfo
+            var transports_FleetsGround = transports_FleetsToStoragesDistanceWithInfoGround
                 .Select(pair => pair.Item1)
 		        .ToArray();
             ///Список id элементов "транспорт_парк" (не повторяются) из transports_FleetsToStoragesDistanceWithInfo
-            var transports_FleetsIds = _dataPreparer.GetTransportsIds(transports_FleetsToStoragesDistanceWithInfo
+            var transports_FleetsGroundIds = _dataPreparer.GetTransportsIds(transports_FleetsToStoragesDistanceWithInfoGround
                 .Select(pair => pair.Item1));
 
             ///Список скорости и коэффициента расчета стоимости доставки для элементов "транспорт_парк" (не повторяются) из transports_Fleets
 			///Помечено как ground, хотя туда попадают и транспорты вода-воздух
-            var groundTransports_FleetsSpeedAndCoeff = _dataPreparer.GetTransportInfosVector(transports_Fleets);
+            var groundTransports_FleetsSpeedAndCoeff = _dataPreparer.GetTransportInfosVector(transports_FleetsGround);
 
             ///Матрица.
             ///Строки - transports_FleetsIds (транспорт на конкретном парке транспорта)
             ///Столбцы - storagesIds (склады)
 			///Ячейка - расстояние от парка транспорта этого транспорта до склада
-            var transportsToStoragesDistanceMatrix =
-		        _dataPreparer.GetTransportsToStoragesDistanceMatrix(transports_FleetsToStoragesDistanceWithInfo,
+            var transportsToStoragesDistanceGroundMatrix =
+		        _dataPreparer.GetTransportsToStoragesDistanceMatrix(transports_FleetsToStoragesDistanceWithInfoGround,
 			        storagesIds,
-                    transports_FleetsIds);
+                    transports_FleetsGroundIds);
 
             ///Результат: сформирована матрица расстояний от каждого транспорта каждого парка транспорта (только те парки, на которых есть наземный транспорт)
-			///(почему то используются и вода+воздух)
+            ///(почему то используются и вода+воздух)
             ///до каждого склада материалов из бд
 
 
+            var transports_FleetsToStoragesDistanceWithInfoAll = await
+                _dataPreparer.GetTransportToStorageDistanceInfoAll(storagesIds, filter.TransportTypeIds, cancellationToken);
 
-            ///Список комплектов материалов (с материалами) из которых можно построить сооружение.
-			///(для дальнейшей постройки должен использоваться 1 комплект: либо роосыпной, либо блочный какого-нибудь производителя)
-            var constructionMaterialsSets =
-		        _dataPreparer.GetMaterialsSetsWithConstructionTypes(constructionTypeId);
+            var transports_FleetsAll = transports_FleetsToStoragesDistanceWithInfoAll
+                .Select(pair => pair.Item1)
+                .ToArray();
+
+            var transports_FleetsAllIds = _dataPreparer.GetTransportsIds(transports_FleetsToStoragesDistanceWithInfoAll
+                .Select(pair => pair.Item1));
 
             ///Список элементов "транспорт_парк до объекта". Дистанция от парка этого транспорта до объекта. Берется только вода воздух
             ///filterTransportTypes используется (выбираются водный или воздушный или и тот и другой).
             var transports_FleetsToObjectsDistanceWithInfo = await _dataPreparer.GetTransportsToObjectsDistance(
-                transports_FleetsIds,
+                transports_FleetsAllIds,
 		        filterTransportTypes,
 		        constructionObject.ObjectsId,
 		        cancellationToken);
@@ -149,6 +156,8 @@ public class AlgorithmService
             ///Список id элеметов "транспорт_парк до объекта"
             var transports_FleetsIdsToObject = _dataPreparer.GetTransportsIds(transports_FleetsToObjectsDistanceWithInfo
                 .Select(pair => pair.transport));
+            ///Дистанции от каждого элемента "транспорт_парк до объекта" до объекта
+            var transportsToObjectDistanceDecimalVector = _dataPreparer.GetDistanceVector(transports_FleetsToObjectsDistanceWithInfo);
 
 
             ///Список дистанций с доп.инфой от складов до элемента "транспорт_парк" водавоздух (по сути до парка 2-го логиста, который повезет до объекта)
@@ -158,29 +167,30 @@ public class AlgorithmService
 		        filterTransportTypes,
 		        constructionObject.ObjectsId,
 		        cancellationToken);
-            ///Дистанции от каждого элемента "транспорт_парк до объекта" до объекта
-            var transportsToObjectDistanceDecimalVector = _dataPreparer.GetDistanceVector(transports_FleetsToObjectsDistanceWithInfo);
             ///Матрица дистанций от каждого склада до каждого элемента "транспорт_парк" (по сути до парков 2-го логиста)
-            var transportsToObjectDistanceDecimalMatrix = _dataPreparer.GetStorageToTransportDistanceMatrix(storagesToNotGroundTransports_FleetsWithInfo,
+            var storagesToNotGroundTransports_FleetsDecimalMatrix = _dataPreparer.GetStorageToTransportDistanceMatrix(storagesToNotGroundTransports_FleetsWithInfo,
 		        storagesIds,
                 transports_FleetsIdsToObject);
 
             ///Результат: составлена матрица дистанций от складов до элементов "транспорт_парк" (по сути до парков транспорта 2-го логиста, которые имеют воздушный и водный транспорт)
-			
-
-
-			///Общие результаты предыдущего блока:
-			///1. Вытащена из бд организационная информация об объекте, месторождении, дочернем обществе текущего сооружения
-			///2. Составлена матрица дистанций от парков логистов (1-й)(именно назменый, но в коде ошибка, используется и другие) до абсолтно всех складов материалов.
-			///3 Составлена матрица дистанций от прежде указанных складов до парков логистов (2-й)(именно водные или воздушные или и те и другие).
-			///По сути пока просто вытащены данные из бд
-			///Смысл в том, что в дальнейшем при необходимости 1-й логист поедет до склада, а потом поедет до 2-го логиста, у которого будет транспорт, чтобы доставить
-			///материалы на труднодоступные объекты воздушной или водной доставкой.
-			///
 
 
 
+            ///Общие результаты предыдущего блока:
+            ///1. Вытащена из бд организационная информация об объекте, месторождении, дочернем обществе текущего сооружения
+            ///2. Составлена матрица дистанций от парков логистов (1-й)(именно назменый, но в коде ошибка, используется и другие) до абсолтно всех складов материалов.
+            ///3 Составлена матрица дистанций от прежде указанных складов до парков логистов (2-й)(именно водные или воздушные или и те и другие).
+            ///По сути пока просто вытащены данные из бд
+            ///Смысл в том, что в дальнейшем при необходимости 1-й логист поедет до склада, а потом поедет до 2-го логиста, у которого будет транспорт, чтобы доставить
+            ///материалы на труднодоступные объекты воздушной или водной доставкой.
+            ///
 
+
+
+            ///Список комплектов материалов (с материалами) из которых можно построить сооружение.
+            ///(для дальнейшей постройки должен использоваться 1 комплект: либо роосыпной, либо блочный какого-нибудь производителя)
+            var constructionMaterialsSets =
+                _dataPreparer.GetMaterialsSetsWithConstructionTypes(constructionTypeId);
 
 
             foreach (var constructionMaterialSet in constructionMaterialsSets)
@@ -215,8 +225,8 @@ public class AlgorithmService
                 //Объект всей информации, которая пойдет в алгоритм
                 var solverParameters = new AlgorithmSolverParameters(
                     objectToStoragesDistance.TransformDecimalToLongVector(100),
-			        transportsToStoragesDistanceMatrix.TransformDecimalToLongMatrix(100),
-			        transportsToObjectDistanceDecimalMatrix.TransformDecimalToLongMatrix(100),
+			        transportsToStoragesDistanceGroundMatrix.TransformDecimalToLongMatrix(100),
+                    storagesToNotGroundTransports_FleetsDecimalMatrix.TransformDecimalToLongMatrix(100),
 			        transportsToObjectDistanceDecimalVector.TransformDecimalToLongVector(100),
                     groundTransports_FleetsSpeedAndCoeff.TransformTransportInfosToLongMatrix(100),
                     notGroundTransports_FleetsSpeedAndCoeffToObject.TransformTransportInfosToLongMatrix(100),
@@ -224,7 +234,6 @@ public class AlgorithmService
 			        filterTransportTypes);
 
                 //Выбор оптимума (время/цена/средний)
-                //не увидел где используется фильтр для определения способа строительства. Надо найти
                 //solver это объект от Or-tools Google. Используется для оптимизации
                 // filter.FilterMethod - время/цена/средний
                 var solver = new AlgorithmSolverBuilder(solverParameters)
@@ -258,13 +267,13 @@ public class AlgorithmService
 				                        (decimal)constructionUnits[materialIndex].Amount
 			        };
 
-			        var groundTransportInfo = transports_Fleets[groundIndex];
+			        var groundTransportInfo = transports_FleetsGround[groundIndex];
 			        var fleet = groundTransportInfo.TransportFleet;
 			        var company = fleet?.Company;
 			        var logisticCompany = company?.LogisticCompany;
 			        
-			        var groundDeliveryDistance = transportsToStoragesDistanceMatrix[groundIndex, storageIndex] + 
-				        ((nonGroundIndex != -1) ? transportsToObjectDistanceDecimalMatrix[storageIndex, nonGroundIndex] : objectToStoragesDistance[storageIndex]);
+			        var groundDeliveryDistance = transportsToStoragesDistanceGroundMatrix[groundIndex, storageIndex] + 
+				        ((nonGroundIndex != -1) ? storagesToNotGroundTransports_FleetsDecimalMatrix[storageIndex, nonGroundIndex] : objectToStoragesDistance[storageIndex]);
 
 			        var groundLogisticInfo = new LogisticInfo
 			        {

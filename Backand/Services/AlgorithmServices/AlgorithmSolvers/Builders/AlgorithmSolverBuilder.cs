@@ -17,6 +17,8 @@ public class AlgorithmSolverBuilder
     /// <summary>
     /// Конструкторы алгоритмов.
     /// </summary>
+    /// 
+    //каким то образом словарь собирает в себя по ключу нужные функции в методе GetAlgorithmsConstructorsDictionaryFromAssembly
     private static readonly Dictionary<FilterMethod, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>
         AlgorithmsConstructorsDictionary = GetAlgorithmsConstructorsDictionaryFromAssembly(Assembly.GetExecutingAssembly());
 

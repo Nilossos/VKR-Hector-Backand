@@ -53,15 +53,23 @@ public abstract class CpSatAlgorithmBaseSolver
             MaterialParams,
             DeliveryTypes) = parameters;
 
+        //кол-во складов
         StoragesCount = DistanceStorageObjectVector.Length;
+        //кол-во элементов транспорт_парк (наземные до склада)
         TransportsToStoragesCount = DistanceTransportStorageMatrix.GetLength(0);
+        //кол-во материалов
         MaterialsCount = MaterialParams.GetLength(1);
+        //кол-во элементов транспорт_парк (склад до водавоздухтранспорт-парк)
         StoragesToNotGroundTransportsCount = DistanceStorageNotGroundTransportsMatrix.GetLength(1);
+
+        //Переменные BoolVar будо то вектор или матрица содержат в себе либо 0 либо 1. Где 1 позже будут означать выбранное решение.
         StorageAssignVariableVector = new BoolVar[StoragesCount];
         TransportsToStoragesAssignVariableMatrix = new BoolVar[TransportsToStoragesCount, StoragesCount];
         MaterialInStorageAssignVariableMatrix = new BoolVar[StoragesCount, MaterialsCount];
         StoragesToNotGroundTransportsAssignVariableMatrix =
             new BoolVar[StoragesCount, StoragesToNotGroundTransportsCount];
+
+        //Во всех Init ставятся ограничения в Model (объект or-tools Google). Каждая ячейка заполняется NewBoolVar (которая будет либо 0, либо 1)
         InitTransportTypeConstrains();
         InitStorageAssignVariablesVector();
         InitGroundTransportToStoragesVariablesAndConstrains();
@@ -98,8 +106,7 @@ public abstract class CpSatAlgorithmBaseSolver
     /// Инициализировать ограничения типа транспорта.
     /// </summary>
     /// 
-
-    //Во всех Init ставятся ограничения в Model (объект or-tools Google)
+    //
     private void InitTransportTypeConstrains()
     {
         IsGroundDeliveryVariable = Model.NewBoolVar($"is_only_ground_delivery");
@@ -131,9 +138,11 @@ public abstract class CpSatAlgorithmBaseSolver
             {
                 TransportsToStoragesAssignVariableMatrix[i, j] = Model.NewBoolVar($"transport_{i}_storage_{j}_assign");
                 transportToStoragesAssignsVector[j] = TransportsToStoragesAssignVariableMatrix[i, j];
-                var isGroundAssigned = Model.NewBoolVar("{i}_{j}_is_ground_delivery");
+                var isGroundAssigned = Model.NewBoolVar("{i}_{j}_is_ground_delivery");//нигде не используется
             }
-
+            //неправильно учитывается возможность одного транспорта ехать на разные склады. Сейчас работает так, что например 1 транспорт представленный в массиве может ехать только
+            //на 1 слкад. Хотя нужно сделать так, чтобы i-й транспорт существовал в бесконечных экземплярах и мог быть использован для параллельной паездки на разные склады.
+            //возможно так Model.Add(transportToStoragesAssignsSum <= maxAssignmentsPerTransport);, но надо проверить
             var transportToStoragesAssignsSum = LinearExpr.Sum(transportToStoragesAssignsVector);
             Model.Add(transportToStoragesAssignsSum <= 1);
         }
@@ -154,6 +163,7 @@ public abstract class CpSatAlgorithmBaseSolver
 
             var transportsToStorageAssignsSum = LinearExpr.Sum(transportsToStorageAssignsVector);
             Model.Add(transportsToStorageAssignsSum <= 1);
+            //пока непонятно почему сразу назначается, что этот транспорт поедет и до объекта, если может поехать до второго логиста
             Model.Add(StorageAssignVariableVector[i] == transportsToStorageAssignsSum);
         }
     }
@@ -200,7 +210,7 @@ public abstract class CpSatAlgorithmBaseSolver
             Model.Add(materialInStoragesAssignsSum == 1);
         }
     }
-
+    //как будто вообще не учитывается назначение 
     /// <summary>
     /// Инициализировать ограничения и переменные от склада до НЕ наземного склада
     /// </summary>

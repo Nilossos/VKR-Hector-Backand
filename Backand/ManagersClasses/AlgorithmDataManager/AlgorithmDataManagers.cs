@@ -107,7 +107,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
             {
                 // Чтение тела запроса
                 var algorithmRequest = await context.Request.ReadFromJsonAsync<AlgorithmRequest>(cancellationToken);
-
+				var a = 1;
                 // Проверка, что тело запроса не пустое
                 if (algorithmRequest == null)
                 {
