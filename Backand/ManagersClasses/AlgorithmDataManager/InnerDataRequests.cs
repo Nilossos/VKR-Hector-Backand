@@ -10,7 +10,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 {
 	public class InnerDataRequests
 	{
-		internal static List<TransportOnFleetWithRegions> GetTransportToDeliverFromFleet(List<TransportOnFleetWithRegions> transportsOnFleets, Objects objectsToDeliver, TransportTypeValue transportType) =>
+		internal static List<TransportOnFleetWithRegions> GetTransportToDeliverFromFleet(List<TransportOnFleetWithRegions> transportsOnFleets, DbEntities.ObjectEntity objectsToDeliver, TransportTypeValue transportType) =>
 			transportsOnFleets
 				.Where(t => t.RegionIds.Contains(objectsToDeliver.RegionId) && t.TransportOnFleet.TransportTypeId == (int)transportType)
 				.ToList();
@@ -24,7 +24,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 		internal static List<TransportOnFleetWithRegions> GetFirstTransportFromFleets(List<TransportOnFleetWithRegions> transportsOnFleets) =>
 			transportsOnFleets.DistinctBy(t => t.TransportOnFleet.TransportFleet.TransportFleetId).ToList();
 
-		internal static Dictionary<int, decimal?> GetStorageToCertainObjectsDistances(List<StorageToObjectsDistance> storageToObjectsDistances, Objects? objectsToDeliver) =>
+		internal static Dictionary<int, decimal?> GetStorageToCertainObjectsDistances(List<StorageToObjectsDistance> storageToObjectsDistances, DbEntities.ObjectEntity? objectsToDeliver) =>
 			storageToObjectsDistances
 				.Where(d => d.ObjectsId == objectsToDeliver!.ObjectsId)
 				.ToDictionary(d => d.StorageId, d => d.Distance);
@@ -68,7 +68,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 							   throw new NullReferenceException();
 
 			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
-			order.Objects = new EntityLink { Id = construction.ObjectsId, Name = construction.Object.Name! };
+			order.Objects = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
 			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
 			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };
 

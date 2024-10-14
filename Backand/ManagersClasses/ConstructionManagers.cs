@@ -20,30 +20,26 @@ namespace Backand.ManagersClasses
             {
                 constructions = db.Construction.ToList();
             }
-            
+
             await context.Response.WriteAsJsonAsync(constructions);
         }
         //Get by object id
         public static async Task<IResult> GetConstructionsByObjectId(int object_id, ApplicationContext dbContext)
         {
-            EntityLink[] links = await Task.Run(() =>
-            {
-                var _links = dbContext.Construction.
-                    Where(c=>c.ObjectsId==object_id).
-                    Select(c=>c.Link).ToArray();
-                return _links;
-            });
-            
+            var links = await dbContext.Construction
+                .Include(c => c.ConstructionState)
+                .Where(c => c.ObjectId == object_id)
+                .ToListAsync();
             return Results.Json(links);
         }
-        private static async Task<(EntityLink,Objects)> GetObjectsLink(ApplicationContext dbContext,Construction c)
+        private static async Task<(EntityLink, ObjectEntity)> GetObjectsLink(ApplicationContext dbContext, Construction c)
         {
             await dbContext.Entry(c).Reference(c => c.Object).LoadAsync();
-            Objects bash = c.Object;
+            DbEntities.ObjectEntity bash = c.Object;
             EntityLink bLink = new() { Id = bash.ObjectsId, Name = bash.Name };
             return (bLink, bash);
         }
-        private static async Task<(EntityLink,Mine)> GetMineLink(ApplicationContext dbContext,Objects bash)
+        private static async Task<(EntityLink, Mine)> GetMineLink(ApplicationContext dbContext, DbEntities.ObjectEntity bash)
         {
             await dbContext.Entry(bash).Reference(b => b.Mine).LoadAsync();
             Mine mine = bash.Mine;
@@ -65,21 +61,21 @@ namespace Backand.ManagersClasses
             List<ConstructionTable> tables = new();
             foreach (var c in constructions)
             {
-                EntityLink cLink = new() {Id=c.ConstructionId, Name=c.ConstructionName };
+                EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
 
-                var (bLink, bash) = await GetObjectsLink(dbContext,c);
+                var (bLink, bash) = await GetObjectsLink(dbContext, c);
                 var (mLink, mine) = await GetMineLink(dbContext, bash);
-                var sLink = await GetSubsidiaryLink(dbContext,mine);
-                
-                ConstructionTable table = new(cLink,bLink,mLink,sLink);
+                var sLink = await GetSubsidiaryLink(dbContext, mine);
+
+                ConstructionTable table = new(cLink, bLink, mLink, sLink);
                 tables.Add(table);
             }
-            
+
             return Results.Json(tables);
         }
-        public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext,HttpContext httpContext)
+        public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext, HttpContext httpContext)
         {
-            Construction construction =await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == construction_id);
+            Construction construction = await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == construction_id);
             if (construction != null)
             {
                 var cEntry = dbContext.Entry(construction);
@@ -93,16 +89,15 @@ namespace Backand.ManagersClasses
                 httpContext.Response.StatusCode = 404;
                 return Results.Json(new BaseResponse(true, $"Сооружение с id {construction_id} не найдено!"));
             }
-            
+
         }
         //Create new object 
-        public static async Task CreateConstruction(HttpContext context,ApplicationContext dbContext)
+        public static async Task CreateConstruction(HttpContext context, ApplicationContext dbContext)
         {
             BaseResponse response;
             try
             {
                 var constructions = dbContext.Construction;
-
 
                 //var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
                 //Console.WriteLine("Received JSON:");
@@ -110,11 +105,12 @@ namespace Backand.ManagersClasses
 
                 Construction? construction = await context.Request.ReadFromJsonAsync<Construction>(new JsonSerializerOptions()
                 {
-                    PropertyNamingPolicy=new CustomCammelCase()
+                    PropertyNamingPolicy = new CustomCammelCase()
                 });
 
                 if (construction != null)
                 {
+                    construction.ConstructionStateId = BuildState.Planned;
                     await constructions.AddAsync(construction);
                     await dbContext.SaveChangesAsync();
                     response = new(false, "Сооружение добавлено!");
@@ -123,9 +119,9 @@ namespace Backand.ManagersClasses
                     response = new(true, "Неправильные передаваемые данные о сооружении!");
 
             }
-            catch(Exception exc)
+            catch (Exception exc)
             {
-                response =new(true,exc.ToString());
+                response = new(true, exc.ToString());
             }
             await context.Response.WriteAsJsonAsync(response);
         }
@@ -144,7 +140,10 @@ namespace Backand.ManagersClasses
             var a = 1;
             if (constructionData != null)
             {
-                var construction = await dbContext.Construction.FindAsync(construction_id_update);
+                var construction = await dbContext.Construction
+                    .Include(c => c.ConstructionState)
+                    .SingleOrDefaultAsync(c => c.ConstructionId == construction_id_update);
+                //var construction = await dbContext.Construction.Include(construction => construction.ConstructionState).FindAsync(construction_id_update);
                 if (construction != null)
                 {
                     if (construction.ConstructionState.ConstructionStateId == BuildState.Planned)
@@ -175,13 +174,14 @@ namespace Backand.ManagersClasses
         }
 
         //Delete field 
-        public static async Task<IResult> DeleteConstruction(int construction_id_delete, ApplicationContext dbContext,HttpContext context)
+        public static async Task<IResult> DeleteConstruction(int construction_id_delete, ApplicationContext dbContext, HttpContext context)
         {
             BaseResponse response;
             var deletable = await dbContext.Construction.FirstOrDefaultAsync(c => c.ConstructionId == construction_id_delete);
             if (deletable != null)
             {
-                if (deletable.ConstructionStateId == BuildState.Planned) {
+                if (deletable.ConstructionStateId == BuildState.Planned)
+                {
                     try
                     {
                         dbContext.Construction.Remove(deletable);

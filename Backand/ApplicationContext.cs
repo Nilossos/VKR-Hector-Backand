@@ -47,7 +47,7 @@ namespace Backand
 
 		public virtual DbSet<Mine> Mine { get; set; }
 
-		public virtual DbSet<Objects> Objects { get; set; }
+		public virtual DbSet<DbEntities.ObjectEntity> Objects { get; set; }
 
 		public virtual DbSet<ObjectsTransportType> ObjectsTransportType { get; set; }
 
@@ -140,7 +140,7 @@ namespace Backand
 					.HasConstraintName("Construction_ConstructionTypeId_fkey");
 
 				entity.HasOne(d => d.Object).WithMany(p => p.Constructions)
-					.HasForeignKey(d => d.ObjectsId)
+					.HasForeignKey(d => d.ObjectId)
 					.HasConstraintName("Construction_ObjectsId_fkey");
 			});
 
@@ -299,12 +299,12 @@ namespace Backand
 					.HasConstraintName("Mine_SubsidiaryId_fkey");
 			});
 
-			modelBuilder.Entity<Objects>(entity =>
+			modelBuilder.Entity<DbEntities.ObjectEntity>(entity =>
 			{
 				entity.HasKey(e => e.ObjectsId).HasName("Objects_pkey");
 
 				entity.Property(e => e.ObjectsId).UseIdentityAlwaysColumn();
-				entity.Property(e => e.Name).HasMaxLength(100);
+				entity.Property<string>(e => e.Name).HasMaxLength(100);
 
 				entity.HasOne(d => d.Mine).WithMany(p => p.Objects)
 					.HasForeignKey(d => d.MineId)

@@ -14,6 +14,6 @@ namespace Backand.DbEntities
 
 		public virtual Storage Storage { get; set; } = null!;
 
-		public virtual Objects Objects { get; set; } = null!;
+		public virtual ObjectEntity Objects { get; set; } = null!;
 	}
 }

@@ -11,7 +11,7 @@ public partial class ObjectsTransportType
 
     public int? TransportTypeId { get; set; }
 
-    public virtual Objects? Objects { get; set; }
+    public virtual ObjectEntity? Objects { get; set; }
 
     public virtual TransportType? TransportType { get; set; }
 }

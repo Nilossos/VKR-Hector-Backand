@@ -26,7 +26,7 @@ public class AlgorithmDataPreparer
 	public async Task<int[]> GetAllTransportTypeIds(CancellationToken cancellationToken) =>
 		await _applicationContext.TransportType.Select(t => t.TransportTypeId).ToArrayAsync(cancellationToken);
 
-	public async Task<StorageToObjectsDistance[]> GetStorageToConstructionDistanceInfoVector(Objects constructionObject,
+	public async Task<StorageToObjectsDistance[]> GetStorageToConstructionDistanceInfoVector(DbEntities.ObjectEntity constructionObject,
 		IEnumerable<int> filterTransportTypes,
 		CancellationToken cancellationToken)
 	{

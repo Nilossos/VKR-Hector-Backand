@@ -11,7 +11,7 @@ public partial class Region
 
     public virtual ICollection<DeliveryRegion> DeliveryRegions { get; set; } = new List<DeliveryRegion>();
 
-    public virtual ICollection<Objects> Objects { get; set; } = new List<Objects>();
+    public virtual ICollection<ObjectEntity> Objects { get; set; } = new List<ObjectEntity>();
 
     public virtual ICollection<Storage> Storages { get; set; } = new List<Storage>();
 

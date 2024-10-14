@@ -8,27 +8,29 @@ using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities.ConstructionSpace
 {
-    [JsonConverter(typeof(ConstructionSerializer))]
+    //[JsonConverter(typeof(ConstructionSerializer))]
     public partial class Construction
     {
-        public int ConstructionId { get; set; } = 0;
+        public int ConstructionId { get; set; }
 
-        public int ObjectsId { get; set; }
+        public string ConstructionName { get; set; } = null!;
 
         public int ConstructionTypeId { get; set; }
         public ConstructionType? ConstructionType { get; set; }
-        public string ConstructionName { get; set; }
-        public BuildState ConstructionStateId { get; set; }
+
+        public BuildState? ConstructionStateId { get; set; }
+        [ForeignKey(nameof(ConstructionStateId))]
         public ConstructionState? ConstructionState { get; set; }
-        [ForeignKey(nameof(BuildWay))]
+
         public BuildWay? BuildWayId { get; set; }
-        [JsonIgnore]
+        [ForeignKey(nameof(BuildWayId))]
         public ConstructionUnitType? BuildWay { get; set; }
 
-        [JsonIgnore]
-        public Objects? Object { get; set; }
+        public int ObjectId { get; set; }
+        [ForeignKey(nameof(ObjectId))] // Добавлен ForeignKey
+        public ObjectEntity? Object { get; set; } // Изменено имя на более понятное
 
-        [JsonIgnore]
-        public EntityLink Link { get => new() { Id = ConstructionId, Name = ConstructionName }; }
+        //[JsonIgnore]
+        //public EntityLink Link { get => new() { Id = ConstructionId, Name = ConstructionName }; }
     }
 }

@@ -14,7 +14,7 @@ namespace Backand.FrontendEntities
 		{
 			ConstructionId = construction.ConstructionId;
 			ConstructionName = construction.ConstructionName;
-			ObjectsId = construction.ObjectsId;
+			ObjectsId = construction.ObjectId;
 
 
 			ConstructionType type = dbContext.ConstructionType.First(ct => ct.ConstructionTypeId == construction.ConstructionTypeId);

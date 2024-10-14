@@ -39,7 +39,7 @@ public class AlgorithmService
     /// <param name="constructionObject">Объект.</param>
     /// <param name="constructionUnit">Единица постройки.</param>
     /// <returns>Истина - необходим, Ложь - нет.</returns>
-    private static bool IsAssemblyRequired(Objects constructionObject, ConstructionUnit constructionUnit) =>
+    private static bool IsAssemblyRequired(DbEntities.ObjectEntity constructionObject, ConstructionUnit constructionUnit) =>
 	    !constructionObject.ContainsAssemblyShop &&
 	    (BuildType)constructionUnit.ConstructionUnitTypeId == BuildType.Block;
 
@@ -78,7 +78,7 @@ public class AlgorithmService
 		        construction.ConstructionTypeId);
 	        ///Заполнение Order первичной информацией (сооржуением, объектом, месторождением и дочерним обществом)
 			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
-			order.Objects = new EntityLink { Id = construction.ObjectsId, Name = construction.Object.Name! };
+			order.Objects = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
 			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
 			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };
 
