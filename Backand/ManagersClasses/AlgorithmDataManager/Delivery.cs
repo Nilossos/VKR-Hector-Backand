@@ -11,7 +11,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 	{
 		internal static List<DeliveryVariant> DeliveryVariants { get; set; } = new();
 
-		internal static void FillDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, Objects objectsToDeliver)
+		internal static void FillDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, DbEntities.ObjectEntity objectsToDeliver)
 		{
 			DeliveryVariants.Clear();
 
@@ -28,7 +28,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			SortCostAndTimeListByFilterMethod(DeliveryVariants, filterMethod);
 		}
 
-		static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
+		static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, DbEntities.ObjectEntity objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
 		{
 			Dictionary<int, decimal?> storageToCertainObjectsDistances = GetStorageToCertainObjectsDistances(data.storageToObjectsDistances, objectsToDeliver);
 
@@ -71,7 +71,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			}
 		}
 
-		static void AddDeliveryVariantsForAirTransport(AlgorithmData data, Objects objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
+		static void AddDeliveryVariantsForAirTransport(AlgorithmData data, DbEntities.ObjectEntity objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
 		{
 			List<TransportOnFleetWithRegions> airTransport = GetTransportToDeliverFromFleet(transportsOnFleets, objectsToDeliver, TransportTypeValue.Air);
 			SortTransportsOnFleetByFilter(airTransport, filterMethod);

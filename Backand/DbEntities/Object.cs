@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities
 {
-    public partial class Objects
+    public partial class ObjectEntity
 	{
 		public int ObjectsId { get; set; }
 

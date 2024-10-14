@@ -48,7 +48,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 
 			foreach (var constructionOption in constructionOptions)
 			{
-				(Objects objectsToDeliver, int constructionTypeId) = constructions
+				(ObjectEntity objectsToDeliver, int constructionTypeId) = constructions
 					.Where(c => c.ConstructionId == constructionOption.ConstructionId)
 					.Select(c => (c.Object!, c.ConstructionTypeId))
 					.First();

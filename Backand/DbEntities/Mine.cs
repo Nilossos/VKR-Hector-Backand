@@ -26,7 +26,7 @@ namespace Backand.DbEntities
 			Id = MineId, Name = Name, Coordination = Center, Objects = Objects.Select(o=>o.MapLink).ToArray()
 		};}
 		[JsonIgnore]
-		public virtual ICollection<Objects> Objects { get; set; } = new List<Objects>();
+		public virtual ICollection<ObjectEntity> Objects { get; set; } = new List<ObjectEntity>();
 
         public virtual Subsidiary? Subsidiary { get; set; }
     }

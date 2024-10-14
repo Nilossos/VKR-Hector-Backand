@@ -41,8 +41,8 @@ namespace Backand.DbEntities.ConstructionSpace
         {
             Construction data = new() { ConstructionStateId=BuildState.Planned };
             using ApplicationContext context = new();
-           // data.ConstructionState = context.ConstructionState.First(cs=>cs.ConstructionStateId==data.ConstructionStateId);
-            
+            // data.ConstructionState = ccontext.ConstructionState.First(cs=>cs.ConstructionStateId==data.ConstructionStateId);
+
             var namingPolicy = options.PropertyNamingPolicy;
             if (namingPolicy is CustomCammelCase np)
                 np.Read = true;
