@@ -43,6 +43,10 @@ public class AlgorithmService
 	    !constructionObject.ContainsAssemblyShop &&
 	    (BuildType)constructionUnit.ConstructionUnitTypeId == BuildType.Block;
 
+    private static bool IsOnlySeaTransportFilter(int[] filterTransportTypes) =>
+        filterTransportTypes.Length == 1 &&
+        filterTransportTypes[0]==3;
+
     /// <summary>
     /// Получить ответ алгоритма
     /// </summary>
@@ -63,10 +67,18 @@ public class AlgorithmService
 			///Объект всех фильтров, выбранных для сооружения
 	        var filter = constructionOption.Filter;
 			///Объект фильтра доставки (внутри список id, выбранных типов доставки на фронте)
-				var filterTransportTypes = filter.TransportTypeIds;
-            ///Если объект фильтра доставки был пустой, то он заполняется всеми типами доставки (3 типа: наземный, воздушный, водный)
+			var filterTransportTypes = filter.TransportTypeIds;
+            ///Если объект фильтра доставки был пустой, то он заполняется всеми типами доставки кроме водного (3 типа: наземный, воздушный, водный)
             if (filterTransportTypes.IsNullOrEmpty())
-                filterTransportTypes = await _dataPreparer.GetAllTransportTypeIds(cancellationToken);
+			{
+                var allTransportTypes = await _dataPreparer.GetAllTransportTypeIds(cancellationToken);
+                filterTransportTypes = allTransportTypes.Where(x => x != 3).ToArray();
+            }
+
+			if (IsOnlySeaTransportFilter(filterTransportTypes))
+			{
+                throw new InvalidOperationException("Невозможно продолжить: тип транспорта с индексом 3 (водный) не поддерживается.");
+            }
 	        
 	        var constructionId = constructionOption.ConstructionId;
 	        ///Тип сооружения (качалка, вышка и тп)
