@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backand.ManagersClasses.AlgorithmDataManager.TrackGetters
 {
-    public class TransportFleetToObjectTracker : TracksGetter<TransportFleetToObjectsDistance>
+    public class TransportFleetToObjectTracker : TracksGetter<TransportFleetToObjectDistance>
     {
 		public TransportFleetToObjectTracker(ApplicationContext dbContext, DistanceService distanceService) : base(dbContext, distanceService) { }
 
-        protected override DbSet<TransportFleetToObjectsDistance> TrackDbTable => dbContext.TransportFleetToObjectsDistance;
+        protected override DbSet<TransportFleetToObjectDistance> TrackDbTable => dbContext.TransportFleetToObjectDistance;
 
-        protected override TransportFleetToObjectsDistance ConstructNewTrack(MissingDistance missing, decimal distance) =>
+        protected override TransportFleetToObjectDistance ConstructNewTrack(MissingDistance missing, decimal distance) =>
             new()
             {
 
                 TransportFleetId = missing.Index1,
-                ObjectsId = missing.Index2,
+                ObjectId = missing.Index2,
                 Distance = distance
             };
 
@@ -24,9 +24,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager.TrackGetters
 			await dbContext.TransportFleet.Select(s => new UnitIdWithCoordinates(s.TransportFleetId, s.Coordinates)).ToListAsync();
 
 		protected override async Task<IEnumerable<UnitIdWithCoordinates>> GetEndpoints() =>
-			await dbContext.Objects.Select(tf => new UnitIdWithCoordinates { Id = tf.ObjectsId, Coordinates = tf.Coordinates }).ToListAsync();
+			await dbContext.Object.Select(tf => new UnitIdWithCoordinates { Id = tf.ObjectId, Coordinates = tf.Coordinates }).ToListAsync();
 
-		protected override bool IsRequiredDistance(TransportFleetToObjectsDistance distance, UnitIdWithCoordinates transportFleet, UnitIdWithCoordinates objects) =>
-			distance.ObjectsId == objects.Id && distance.TransportFleetId == transportFleet.Id;
+		protected override bool IsRequiredDistance(TransportFleetToObjectDistance distance, UnitIdWithCoordinates transportFleet, UnitIdWithCoordinates @object) =>
+			distance.ObjectId == @object.Id && distance.TransportFleetId == transportFleet.Id;
 	}
 }

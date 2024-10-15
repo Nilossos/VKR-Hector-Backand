@@ -27,13 +27,13 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			List<StorageMaterial> storagesMaterialsAll = await GetStoragesMaterialsAsync(dbContext);
 
 			TransportFleetToObjectTracker transportFleetToObject = new(dbContext, distanceService);
-			StorageToObjectsTracker storageToObjects = new(dbContext, distanceService);
+			StorageToObjectTracker storageToObject = new(dbContext, distanceService);
 			StorageToTransportFleetTracker storageToFleet = new(dbContext, distanceService);
 
-			List<StorageToObjectsDistance> storageToObjectsDistances = await storageToObjects.GetTrackToEndpoints();
+			List<StorageToObjectDistance> storageToObjectDistances = await storageToObject.GetTrackToEndpoints();
 			List<StorageToTransportFleetDistance> storageToTransportFleetDistances = await storageToFleet.GetTrackToEndpoints();
-			List<TransportFleetToObjectsDistance> transportFleetToObjectsDistance = await transportFleetToObject.GetTrackToEndpoints();
-			return new AlgorithmData(constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistances, transportFleetToObjectsDistance);
+			List<TransportFleetToObjectDistance> transportFleetToObjectDistance = await transportFleetToObject.GetTrackToEndpoints();
+			return new AlgorithmData(constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectDistances, storageToTransportFleetDistances, transportFleetToObjectDistance);
 		}
 
 		internal static async Task CalculateOrderCostTime(HttpContext context, ApplicationContext dbContext, DistanceService distanceService)
@@ -42,18 +42,18 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			List<ConstructionOption> constructionOptions = algorithmRequest.ConstructionOptions;
 
 			AlgorithmData dataTuple = await LoadData(dbContext, distanceService);
-			var (constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectsDistances, storageToTransportFleetDistance, transportFleetToObjectsDistance) = dataTuple;
+			var (constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectDistances, storageToTransportFleetDistance, transportFleetToObjectDistance) = dataTuple;
 
 			AlgorithmResponse response = new();
 
 			foreach (var constructionOption in constructionOptions)
 			{
-				(ObjectEntity objectsToDeliver, int constructionTypeId) = constructions
+				(ObjectEntity objectToDeliver, int constructionTypeId) = constructions
 					.Where(c => c.ConstructionId == constructionOption.ConstructionId)
 					.Select(c => (c.Object!, c.ConstructionTypeId))
 					.First();
 
-				FillDeliveryVariants(dataTuple, constructionOption, objectsToDeliver);
+				FillDeliveryVariants(dataTuple, constructionOption, objectToDeliver);
 
 				List<StorageMaterial> storagesMaterials = DataFiltering.FilterMaterialsByManufacturers(storagesMaterialsAll, constructionOption);
 				var constructionMaterialSets = GetMaterialsSetsWithConstructionTypes(materialSets, dbContext, constructionTypeId);
@@ -62,7 +62,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 				foreach (var constructionMaterialSet in constructionMaterialSets)
 				{
 					var constructionUnits = constructionMaterialSet.Value;
-					bool isAssemblyBuildRequired = !objectsToDeliver.ContainsAssemblyShop && (BuildType)constructionUnits[0].ConstructionUnitTypeId == BuildType.Block;
+					bool isAssemblyBuildRequired = !objectToDeliver.ContainsAssemblyShop && (BuildType)constructionUnits[0].ConstructionUnitTypeId == BuildType.Block;
 
 					if (allowedBuildType != BuildType.NoMatter && (BuildType)constructionUnits[0].ConstructionUnitTypeId != allowedBuildType)
 						continue;

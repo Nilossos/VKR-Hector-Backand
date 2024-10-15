@@ -11,7 +11,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 	{
 		internal static List<DeliveryVariant> DeliveryVariants { get; set; } = new();
 
-		internal static void FillDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, DbEntities.ObjectEntity objectsToDeliver)
+		internal static void FillDeliveryVariants(AlgorithmData data, ConstructionOption constructionOption, DbEntities.ObjectEntity objectToDeliver)
 		{
 			DeliveryVariants.Clear();
 
@@ -20,17 +20,17 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			var transportType = constructionOption.Filter.TransportTypeIds.Cast<TransportTypeValue>();
 
 			if (transportType.Contains(TransportTypeValue.Ground))
-				AddDeliveryVariantsForGroundTransport(data, objectsToDeliver, transportsOnFleets, filterMethod);
+				AddDeliveryVariantsForGroundTransport(data, objectToDeliver, transportsOnFleets, filterMethod);
 
 			if (transportType.Contains(TransportTypeValue.Air))
-				AddDeliveryVariantsForAirTransport(data, objectsToDeliver, transportsOnFleets, filterMethod);
+				AddDeliveryVariantsForAirTransport(data, objectToDeliver, transportsOnFleets, filterMethod);
 
 			SortCostAndTimeListByFilterMethod(DeliveryVariants, filterMethod);
 		}
 
-		static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, DbEntities.ObjectEntity objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
+		static void AddDeliveryVariantsForGroundTransport(AlgorithmData data, DbEntities.ObjectEntity objectToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
 		{
-			Dictionary<int, decimal?> storageToCertainObjectsDistances = GetStorageToCertainObjectsDistances(data.storageToObjectsDistances, objectsToDeliver);
+			Dictionary<int, decimal?> storageToCertainObjectDistances = GetStorageToCertainObjectDistances(data.storageToObjectDistances, objectToDeliver);
 
 			foreach (var transportFleet in data.transportFleets)
 			{
@@ -44,9 +44,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 					int storageId = storage.StorageId;
 
 					foreach (var transport in transports)
-						if (transport.RegionIds.Contains((int)storage.RegionId!) && transport.RegionIds.Contains(objectsToDeliver!.RegionId))
+						if (transport.RegionIds.Contains((int)storage.RegionId!) && transport.RegionIds.Contains(objectToDeliver!.RegionId))
 						{
-							decimal distance = (decimal)(data.storageToTransportFleetDistances.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.StorageId == storageId)!.Distance + storageToCertainObjectsDistances[storageId])!;
+							decimal distance = (decimal)(data.storageToTransportFleetDistances.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.StorageId == storageId)!.Distance + storageToCertainObjectDistances[storageId])!;
 							decimal cost = (decimal)transport.TransportOnFleet!.CoefficientValue * distance;
 							decimal deliveryTime = distance / (decimal)transport.TransportOnFleet!.AverageSpeed;
 
@@ -71,9 +71,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			}
 		}
 
-		static void AddDeliveryVariantsForAirTransport(AlgorithmData data, DbEntities.ObjectEntity objectsToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
+		static void AddDeliveryVariantsForAirTransport(AlgorithmData data, ObjectEntity objectToDeliver, List<TransportOnFleetWithRegions> transportsOnFleets, FilterMethod filterMethod)
 		{
-			List<TransportOnFleetWithRegions> airTransport = GetTransportToDeliverFromFleet(transportsOnFleets, objectsToDeliver, TransportTypeValue.Air);
+			List<TransportOnFleetWithRegions> airTransport = GetTransportToDeliverFromFleet(transportsOnFleets, objectToDeliver, TransportTypeValue.Air);
 			SortTransportsOnFleetByFilter(airTransport, filterMethod);
 			var airTransportFiltered = GetFirstTransportFromFleets(airTransport);
 
@@ -82,10 +82,10 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			SortTransportsOnFleetByFilter(groundTransport, filterMethod);
 			var groundTransportFiltered = GetFirstTransportFromFleets(groundTransport);
 
-			GetGroundAirTransportVariations(data, airTransportFiltered, groundTransportFiltered, objectsToDeliver.ObjectsId);
+			GetGroundAirTransportVariations(data, airTransportFiltered, groundTransportFiltered, objectToDeliver.ObjectId);
 		}
 
-		static void GetGroundAirTransportVariations(AlgorithmData data, List<TransportOnFleetWithRegions> airTransports, List<TransportOnFleetWithRegions> groundTransports, int objectsToDeliverId)
+		static void GetGroundAirTransportVariations(AlgorithmData data, List<TransportOnFleetWithRegions> airTransports, List<TransportOnFleetWithRegions> groundTransports, int objectToDeliverId)
 		{
 
 			foreach (var storage in data.storages)
@@ -107,7 +107,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 					decimal groundCost = (decimal)groundTransport.TransportOnFleet!.CoefficientValue * (decimal)groundDistance;
 					decimal groundDeliveryTime = (decimal)groundDistance / (decimal)groundTransport.TransportOnFleet.AverageSpeed;
 
-					decimal? airDistance = GetTransportFleetToObjectsDistance(data.transportFleetToObjectsDistances, airTransportFleetId, objectsToDeliverId);
+					decimal? airDistance = GetTransportFleetToObjectDistance(data.transportFleetToObjectDistances, airTransportFleetId, objectToDeliverId);
 					if (airDistance is null) continue;
 					decimal airCost = (decimal)airTransport.TransportOnFleet!.CoefficientValue * (decimal)airDistance;
 					decimal airDeliveryTime = (decimal)airDistance / (decimal)airTransport.TransportOnFleet.AverageSpeed;

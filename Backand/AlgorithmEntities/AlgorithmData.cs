@@ -12,8 +12,8 @@ namespace Backand.AlgorithmEntities
 		List<TransportOnFleetWithRegions> transportsOnFleetsAll,
 		List<MaterialSet> materialSets,
 		List<StorageMaterial> storagesMaterialsAll,
-		List<StorageToObjectsDistance> storageToObjectsDistances,
+		List<StorageToObjectDistance> storageToObjectDistances,
 		List<StorageToTransportFleetDistance> storageToTransportFleetDistances,
-		List<TransportFleetToObjectsDistance> transportFleetToObjectsDistances
+		List<TransportFleetToObjectDistance> transportFleetToObjectDistances
 	);
 }

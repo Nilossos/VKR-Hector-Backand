@@ -47,9 +47,9 @@ namespace Backand
 
 		public virtual DbSet<Mine> Mine { get; set; }
 
-		public virtual DbSet<DbEntities.ObjectEntity> Objects { get; set; }
+		public virtual DbSet<ObjectEntity> Object { get; set; }
 
-		public virtual DbSet<ObjectsTransportType> ObjectsTransportType { get; set; }
+		public virtual DbSet<ObjectTransportType> ObjectTransportType { get; set; }
 
 		public virtual DbSet<Region> Region { get; set; }
 
@@ -57,7 +57,7 @@ namespace Backand
 
 		public virtual DbSet<Storage_ConstructionUnit> Storage_ConstructionUnit { get; set; }
 
-        public virtual DbSet<StorageToObjectsDistance> StorageToObjectsDistance { get; set; }
+        public virtual DbSet<StorageToObjectDistance> StorageToObjectDistance { get; set; }
 
         public virtual DbSet<StorageToTransportFleetDistance> StorageToTransportFleetDistance { get; set; }
 
@@ -69,7 +69,7 @@ namespace Backand
 
 		public virtual DbSet<TransportFleet_Transport> TransportFleet_Transport { get; set; }
 
-        public virtual DbSet<TransportFleetToObjectsDistance> TransportFleetToObjectsDistance { get; set; }
+        public virtual DbSet<TransportFleetToObjectDistance> TransportFleetToObjectDistance { get; set; }
 
         public virtual DbSet<TransportMode> TransportMode { get; set; }
 
@@ -141,7 +141,7 @@ namespace Backand
 
 				entity.HasOne(d => d.Object).WithMany(p => p.Constructions)
 					.HasForeignKey(d => d.ObjectId)
-					.HasConstraintName("Construction_ObjectsId_fkey");
+					.HasConstraintName("Construction_ObjectId_fkey");
 			});
 
 			modelBuilder.Entity<ConstructionState>(entity =>
@@ -299,39 +299,39 @@ namespace Backand
 					.HasConstraintName("Mine_SubsidiaryId_fkey");
 			});
 
-			modelBuilder.Entity<DbEntities.ObjectEntity>(entity =>
+			modelBuilder.Entity<ObjectEntity>(entity =>
 			{
-				entity.HasKey(e => e.ObjectsId).HasName("Objects_pkey");
+				entity.HasKey(e => e.ObjectId).HasName("Object_pkey");
 
-				entity.Property(e => e.ObjectsId).UseIdentityAlwaysColumn();
+				entity.Property(e => e.ObjectId).UseIdentityAlwaysColumn();
 				entity.Property<string>(e => e.Name).HasMaxLength(100);
 
 				entity.HasOne(d => d.Mine).WithMany(p => p.Objects)
 					.HasForeignKey(d => d.MineId)
-					.HasConstraintName("Objects_MineId_fkey");
+					.HasConstraintName("Object_MineId_fkey");
 
 				entity.HasOne(d => d.Region).WithMany(p => p.Objects)
 					.HasForeignKey(d => d.RegionId)
-					.HasConstraintName("Objects_RegionId_fkey");
+					.HasConstraintName("Object_RegionId_fkey");
 			});
 
-			modelBuilder.Entity<ObjectsTransportType>(entity =>
+			modelBuilder.Entity<ObjectTransportType>(entity =>
 			{
-				entity.HasKey(e => e.ObjectsTransportTypeId).HasName("Objects_TransportType_pkey");
+				entity.HasKey(e => e.ObjectTransportTypeId).HasName("Object_TransportType_pkey");
 
-				entity.ToTable("Objects_TransportType");
+				entity.ToTable("Object_TransportType");
 
-				entity.Property(e => e.ObjectsTransportTypeId)
+				entity.Property(e => e.ObjectTransportTypeId)
 					.UseIdentityAlwaysColumn()
-					.HasColumnName("Objects_TransportTypeId");
+					.HasColumnName("Object_TransportTypeId");
 
-				entity.HasOne(d => d.Objects).WithMany(p => p.ObjectsTransportTypes)
-					.HasForeignKey(d => d.ObjectsId)
-					.HasConstraintName("Objects_TransportType_ObjectsId_fkey");
+				entity.HasOne(d => d.Object).WithMany(p => p.ObjectTransportTypes)
+					.HasForeignKey(d => d.ObjectId)
+					.HasConstraintName("Object_TransportType_ObjectId_fkey");
 
-				entity.HasOne(d => d.TransportType).WithMany(p => p.ObjectsTransportTypes)
+				entity.HasOne(d => d.TransportType).WithMany(p => p.ObjectTransportTypes)
 					.HasForeignKey(d => d.TransportTypeId)
-					.HasConstraintName("Objects_TransportType_TransportTypeId_fkey");
+					.HasConstraintName("Object_TransportType_TransportTypeId_fkey");
 			});
 
 			modelBuilder.Entity<Region>(entity =>
