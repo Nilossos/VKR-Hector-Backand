@@ -38,12 +38,12 @@ app.MapPost("/field",FieldManagers.CreateMine);
 app.MapPut("/field", FieldManagers.UpdateMine);
 
 //CRUD FOR OBJECTS
-app.MapGet("/objects", ObjectsManagers.GetAllObjects);
-app.MapGet("/objects/byMine/{mine_id:int}", ObjectsManagers.GetObjectsByMineId);
-app.MapGet("/object/{id}", ObjectsManagers.GetObjectById);
-app.MapDelete("/object/{id}", ObjectsManagers.DeleteObject);
-app.MapPost("/objects", ObjectsManagers.CreateObject);
-app.MapPut("/objects", ObjectsManagers.UpdateObject);
+app.MapGet("/objects", ObjectManagers.GetAllObjects);
+app.MapGet("/objects/byMine/{mine_id:int}", ObjectManagers.GetObjectsByMineId);
+app.MapGet("/object/{id}", ObjectManagers.GetObjectById);
+app.MapDelete("/object/{id}", ObjectManagers.DeleteObject);
+app.MapPost("/objects", ObjectManagers.CreateObject);
+app.MapPut("/objects", ObjectManagers.UpdateObject);
 
 
 //CRUD FOR CONSTRUCTION 
@@ -209,7 +209,7 @@ app.MapGet("/distance", async (DistanceService ds,HttpContext context) =>
     }
 });
 
-var fields = typeof(StorageToObjectsDistance).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+var fields = typeof(StorageToObjectDistance).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
 foreach (var field in fields)
     Console.WriteLine(field);

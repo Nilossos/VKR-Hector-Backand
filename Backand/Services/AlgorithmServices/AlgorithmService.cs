@@ -90,7 +90,7 @@ public class AlgorithmService
 		        construction.ConstructionTypeId);
 	        ///Заполнение Order первичной информацией (сооржуением, объектом, месторождением и дочерним обществом)
 			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
-			order.Objects = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
+			order.Object = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
 			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
 			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };
 
@@ -174,7 +174,7 @@ public class AlgorithmService
 		        .Distinct()
 		        .ToArray();
             ///Список скорости и коэффициента для элементов "транспорт_парк до объекта"
-            var notGroundTransports_FleetsSpeedAndCoeffToObject = _dataPreparer.GetTransportInfosVector(transports_FleetsToObjects);
+            var notGroundTransports_FleetsSpeedAndCoeffToObject = _dataPreparer.GetTransportInfosVector(transports_FleetsToObject);
             ///Список id элеметов "транспорт_парк до объекта"
             var transports_FleetsIdsToObject = _dataPreparer.GetTransportsIds(transports_FleetsToObjectsSkyDistanceWithInfo
                 .Select(pair => pair.transport));
@@ -187,7 +187,7 @@ public class AlgorithmService
 		        await _dataPreparer.GetStoragesToTransportFleetsInfos(transports_FleetsIdsToObject,
 		        storagesIds,
 		        filterTransportTypes,
-		        constructionObject.ObjectsId,
+		        constructionObject.ObjectId,
 		        cancellationToken);
             ///Матрица дистанций от каждого склада до каждого элемента "транспорт_парк" (по сути до парков 2-го логиста)
             var storagesToNotGroundTransports_FleetsDecimalMatrix = _dataPreparer.GetStorageToTransportDistanceMatrix(storagesToNotGroundTransports_FleetsWithInfo,

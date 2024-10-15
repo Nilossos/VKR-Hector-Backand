@@ -25,10 +25,10 @@ namespace Backand.ManagersClasses
                         Id=mine.MineId,
                         Name=mine.Name,
                         Coordination=mine.Center,
-                        Objects = context.Objects.Where(o=>o.MineId==mine.MineId).
+                        Objects = context.Object.Where(o=>o.MineId==mine.MineId).
                             Select(o => new MapLink 
                             {
-                                Id=o.ObjectsId,
+                                Id=o.ObjectId,
                                 Name=o.Name, 
                                 Coordination=o.Spot
                             }).ToArray()

@@ -13,7 +13,7 @@ public partial class TransportType
     [JsonIgnore]
     public EntityLink Link { get => new() {Id=TransportTypeId, Name=Name }; }
 
-    public virtual ICollection<ObjectsTransportType> ObjectsTransportTypes { get; set; } = new List<ObjectsTransportType>();
+    public virtual ICollection<ObjectTransportType> ObjectTransportTypes { get; set; } = new List<ObjectTransportType>();
 
     public virtual ICollection<TransportMode> TransportModes { get; set; } = new List<TransportMode>();
 }

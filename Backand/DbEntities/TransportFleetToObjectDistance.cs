@@ -2,12 +2,12 @@
 
 namespace Backand.DbEntities
 {
-    [PrimaryKey(nameof(TransportFleetId), nameof(ObjectsId))]
-    public class TransportFleetToObjectsDistance
+    [PrimaryKey(nameof(TransportFleetId), nameof(ObjectId))]
+    public class TransportFleetToObjectDistance
     {
         public int TransportFleetId { get; init; }
 
-        public int ObjectsId { get; init; }
+        public int ObjectId { get; init; }
 
         public decimal? Distance { get; set; }
         

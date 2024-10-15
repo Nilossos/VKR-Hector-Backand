@@ -7,14 +7,14 @@ namespace Backand.FrontendEntities
 	{
 		public int ConstructionId { get; }
 		public string ConstructionName { get; }
-		public int ObjectsId { get; }
+		public int ObjectId { get; }
 		public ConstructionType ConstructionType { get; }
 		public ConstructionState BuildState { get; }
 		public ConstructionInfo(Construction construction, ApplicationContext dbContext)
 		{
 			ConstructionId = construction.ConstructionId;
 			ConstructionName = construction.ConstructionName;
-			ObjectsId = construction.ObjectId;
+			ObjectId = construction.ObjectId;
 
 
 			ConstructionType type = dbContext.ConstructionType.First(ct => ct.ConstructionTypeId == construction.ConstructionTypeId);

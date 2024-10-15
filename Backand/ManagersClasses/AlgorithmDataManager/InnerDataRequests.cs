@@ -10,9 +10,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 {
 	public class InnerDataRequests
 	{
-		internal static List<TransportOnFleetWithRegions> GetTransportToDeliverFromFleet(List<TransportOnFleetWithRegions> transportsOnFleets, DbEntities.ObjectEntity objectsToDeliver, TransportTypeValue transportType) =>
+		internal static List<TransportOnFleetWithRegions> GetTransportToDeliverFromFleet(List<TransportOnFleetWithRegions> transportsOnFleets, ObjectEntity objectToDeliver, TransportTypeValue transportType) =>
 			transportsOnFleets
-				.Where(t => t.RegionIds.Contains(objectsToDeliver.RegionId) && t.TransportOnFleet.TransportTypeId == (int)transportType)
+				.Where(t => t.RegionIds.Contains(objectToDeliver.RegionId) && t.TransportOnFleet.TransportTypeId == (int)transportType)
 				.ToList();
 
 		internal static List<TransportOnFleetWithRegions> GetGroundTransportToDeliverInAnyRegion(List<TransportOnFleetWithRegions> transportsOnFleets, int[] regionIds) =>
@@ -24,9 +24,9 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 		internal static List<TransportOnFleetWithRegions> GetFirstTransportFromFleets(List<TransportOnFleetWithRegions> transportsOnFleets) =>
 			transportsOnFleets.DistinctBy(t => t.TransportOnFleet.TransportFleet.TransportFleetId).ToList();
 
-		internal static Dictionary<int, decimal?> GetStorageToCertainObjectsDistances(List<StorageToObjectsDistance> storageToObjectsDistances, DbEntities.ObjectEntity? objectsToDeliver) =>
-			storageToObjectsDistances
-				.Where(d => d.ObjectsId == objectsToDeliver!.ObjectsId)
+		internal static Dictionary<int, decimal?> GetStorageToCertainObjectDistances(List<StorageToObjectDistance> storageToObjectDistances, ObjectEntity? objectToDeliver) =>
+			storageToObjectDistances
+				.Where(d => d.ObjectId == objectToDeliver!.ObjectId)
 				.ToDictionary(d => d.StorageId, d => d.Distance);
 
 		internal static decimal? GetStorageToTransportFleetDistance(List<StorageToTransportFleetDistance> storageToTransportFleetDistances, int storageId, int transportFleetId)
@@ -40,10 +40,10 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 				return distanceObject.Distance;
 		}
 
-		internal static decimal? GetTransportFleetToObjectsDistance(List<TransportFleetToObjectsDistance> transportFleetToObjectsDistances, int transportFleetId, int objectsId)
+		internal static decimal? GetTransportFleetToObjectDistance(List<TransportFleetToObjectDistance> transportFleetToObjectDistances, int transportFleetId, int objectId)
 		{
-			TransportFleetToObjectsDistance? distanceObject = transportFleetToObjectsDistances
-				.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.ObjectsId == objectsId);
+			TransportFleetToObjectDistance? distanceObject = transportFleetToObjectDistances
+				.FirstOrDefault(d => d.TransportFleetId == transportFleetId && d.ObjectId == objectId);
 
 			if (distanceObject is null) 
 				return null;
@@ -55,7 +55,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 		context
 			.Construction
 			.Include(construction => construction.Object)
-				.ThenInclude(objects => objects!.Mine)
+				.ThenInclude(@object => @object!.Mine)
 					.ThenInclude(mine => mine!.Subsidiary)
 			.Include(construction => construction.ConstructionType)
 			.FirstOrDefaultAsync(construction => construction.ConstructionId == constructionId);
@@ -68,7 +68,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 							   throw new NullReferenceException();
 
 			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
-			order.Objects = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
+			order.Object = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
 			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
 			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };
 

@@ -3,25 +3,25 @@ using Backand.FrontendEntities;
 
 namespace Backand.ManagersClasses
 {
-    public class ObjectsManagers
+    public class ObjectManagers
     {
         //Get all objects
         public static async Task GetAllObjects(HttpContext context)
         {
 
-            List<DbEntities.ObjectEntity> objects;
+            List<ObjectEntity> objects;
             using (ApplicationContext db = new ApplicationContext())
-                objects = db.Objects.ToList();
+                objects = db.Object.ToList();
             await context.Response.WriteAsJsonAsync(objects);
         }
 
         //Get object by id 
         public static async Task GetObjectById(int id, HttpContext context)
         {
-            List<DbEntities.ObjectEntity> objects;
+            List<ObjectEntity> objects;
             using (ApplicationContext db = new ApplicationContext())
-                objects = db.Objects.ToList();
-            DbEntities.ObjectEntity object1 = objects.FirstOrDefault((f) => f.ObjectsId == id);
+                objects = db.Object.ToList();
+            ObjectEntity object1 = objects.FirstOrDefault((f) => f.ObjectId == id);
             if (object1 != null)
                 await context.Response.WriteAsJsonAsync(object1);
             else
@@ -31,7 +31,7 @@ namespace Backand.ManagersClasses
         //Get objects by mine id
         public static async Task<IResult> GetObjectsByMineId(int mine_id, ApplicationContext appContext)
         {
-            var res = await Task.Run(() => appContext.Objects.
+            var res = await Task.Run(() => appContext.Object.
                 Where(o => o.MineId == mine_id).
                 Select(o => o.Link).
                 ToList());
@@ -41,11 +41,11 @@ namespace Backand.ManagersClasses
         //Create new object 
         public static async Task CreateObject(HttpContext context)
         {
-            List<DbEntities.ObjectEntity> objects;
+            List<ObjectEntity> objects;
             using (ApplicationContext db = new ApplicationContext())
             {
-                objects = db.Objects.ToList();
-                DbEntities.ObjectEntity object1 = await context.Request.ReadFromJsonAsync<DbEntities.ObjectEntity>();
+                objects = db.Object.ToList();
+                ObjectEntity object1 = await context.Request.ReadFromJsonAsync<ObjectEntity>();
                 //int newId;
                 if (object1 != null)
                 {
@@ -66,14 +66,14 @@ namespace Backand.ManagersClasses
         //Update object
         public static async Task UpdateObject(HttpContext context)
         {
-            DbEntities.ObjectEntity objectData = await context.Request.ReadFromJsonAsync<DbEntities.ObjectEntity>();
+            ObjectEntity objectData = await context.Request.ReadFromJsonAsync<ObjectEntity>();
             if (objectData != null)
             {
-                List<DbEntities.ObjectEntity> objects;
+                List<ObjectEntity> objects;
                 using (ApplicationContext db = new ApplicationContext())
                 {
-                    objects = db.Objects.ToList();
-                    var object1 = objects.FirstOrDefault(o => o.ObjectsId == objectData.ObjectsId);
+                    objects = db.Object.ToList();
+                    var object1 = objects.FirstOrDefault(o => o.ObjectId == objectData.ObjectId);
                     if (object1 != null)
                     {
                         object1.Name = objectData.Name;
@@ -94,12 +94,12 @@ namespace Backand.ManagersClasses
         //Delete object 
         public static async void DeleteObject(HttpContext context, int id)
         {
-            List<DbEntities.ObjectEntity> objects;
+            List<ObjectEntity> objects;
             using (ApplicationContext db = new ApplicationContext())
             {
-                objects = db.Objects.ToList();
-                DbEntities.ObjectEntity object1 = objects.FirstOrDefault((o) => o.ObjectsId == id);
-                // если пользователь найден, удаляем его
+                objects = db.Object.ToList();
+                ObjectEntity object1 = objects.FirstOrDefault((o) => o.ObjectId == id);
+                // если object1 найден, удаляем его
                 if (object1 != null)
                 {
                     objects.Remove(object1);

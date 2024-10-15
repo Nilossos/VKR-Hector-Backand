@@ -9,7 +9,7 @@ namespace Backand.DbEntities
 {
     public partial class ObjectEntity
 	{
-		public int ObjectsId { get; set; }
+		public int ObjectId { get; set; }
 
 		public string? Name { get; set; }
 
@@ -28,12 +28,12 @@ namespace Backand.DbEntities
 
 		public virtual Mine? Mine { get; set; }
 
-		public virtual ICollection<ObjectsTransportType> ObjectsTransportTypes { get; set; } = new List<ObjectsTransportType>();
+		public virtual ICollection<ObjectTransportType> ObjectTransportTypes { get; set; } = new List<ObjectTransportType>();
 
 		public virtual Region? Region { get; set; }
 
 		[JsonIgnore]
-		public EntityLink Link { get => new() { Id = ObjectsId, Name = Name }; }
-		public MapLink MapLink { get => new() { Id = ObjectsId, Name = Name, Coordination = Spot }; }
+		public EntityLink Link { get => new() { Id = ObjectId, Name = Name }; }
+		public MapLink MapLink { get => new() { Id = ObjectId, Name = Name, Coordination = Spot }; }
 	}
 }

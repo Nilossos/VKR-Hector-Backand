@@ -18,7 +18,7 @@ public class AlgorithmDataPreparer
 		_applicationContext
 			.Construction
 			.Include(construction => construction.Object)
-				.ThenInclude(objects => objects!.Mine)
+				.ThenInclude(@object => @object!.Mine)
 					.ThenInclude(mine => mine!.Subsidiary)
 			.Include(construction => construction.ConstructionType)
 			.FirstOrDefaultAsync(construction => construction.ConstructionId == constructionId, cancellationToken);
@@ -26,13 +26,13 @@ public class AlgorithmDataPreparer
 	public async Task<int[]> GetAllTransportTypeIds(CancellationToken cancellationToken) =>
 		await _applicationContext.TransportType.Select(t => t.TransportTypeId).ToArrayAsync(cancellationToken);
 
-	public async Task<StorageToObjectsDistance[]> GetStorageToConstructionDistanceInfoVector(DbEntities.ObjectEntity constructionObject,
+	public async Task<StorageToObjectDistance[]> GetStorageToConstructionDistanceInfoVector(ObjectEntity constructionObject,
 		IEnumerable<int> filterTransportTypes,
 		CancellationToken cancellationToken)
 	{
-		return await _applicationContext.StorageToObjectsDistance
+		return await _applicationContext.StorageToObjectDistance
 			.Where(deliveryInfo => deliveryInfo.Distance != null &&
-			                       deliveryInfo.Objects == constructionObject)
+			                       deliveryInfo.Object == constructionObject)
 			.Include(distance => distance.Storage)
 				.ThenInclude(storage => storage.Manufacturer)
 			.Include(distance => distance.Storage)
@@ -41,7 +41,7 @@ public class AlgorithmDataPreparer
 			.ToArrayAsync(cancellationToken);
 	}
 
-	public List<int> GetUniqueStorageIds(IEnumerable<StorageToObjectsDistance> objectToStoragesDistanceWithInfo)
+	public List<int> GetUniqueStorageIds(IEnumerable<StorageToObjectDistance> objectToStoragesDistanceWithInfo)
 	{
 		return objectToStoragesDistanceWithInfo
             .Select(deliveryInfo => deliveryInfo.Storage.StorageId)
@@ -49,19 +49,19 @@ public class AlgorithmDataPreparer
 	}
 
 	public decimal[] GetStorageToConstructionDistanceVector(
-		IEnumerable<StorageToObjectsDistance> objectToStoragesDistanceWithInfo)
+		IEnumerable<StorageToObjectDistance> objectToStoragesDistanceWithInfo)
 	{
 		return objectToStoragesDistanceWithInfo
             .Select(s => s.Distance!.Value)
 			.ToArray();
 	}
 
-	public async Task<(TransportFleet_Transport transport, TransportFleetToObjectsDistance deliveryInfo)[]> GetTransportsToObjectsDistance(
+	public async Task<(TransportFleet_Transport transport, TransportFleetToObjectDistance deliveryInfo)[]> GetTransportsToObjectDistance(
 		ICollection<int> transportFleetIds, ICollection<int> transportTypeCodes, int objectId, CancellationToken cancellationToken)
 	{
-		var queryResult = await _applicationContext.TransportFleetToObjectsDistance
+		var queryResult = await _applicationContext.TransportFleetToObjectDistance
 			.Where(deliveryInfo => deliveryInfo.Distance != null &&
-			                       deliveryInfo.ObjectsId == objectId &&
+			                       deliveryInfo.ObjectId == objectId &&
 			                       transportFleetIds.Contains(deliveryInfo.TransportFleetId))
 			.Where(deliveryInfo => deliveryInfo
 				.TransportFleet
@@ -251,7 +251,7 @@ public class AlgorithmDataPreparer
 	}
 
 	public decimal[] GetDistanceVector(
-		IEnumerable<(TransportFleet_Transport transport, TransportFleetToObjectsDistance deliveryInfo)> deliveryInfos)
+		IEnumerable<(TransportFleet_Transport transport, TransportFleetToObjectDistance deliveryInfo)> deliveryInfos)
 	{
 		return deliveryInfos.Where(pair => pair.deliveryInfo.Distance != null)
 			.Select(pair => pair.deliveryInfo.Distance!.Value).ToArray();

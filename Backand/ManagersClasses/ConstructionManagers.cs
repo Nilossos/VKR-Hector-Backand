@@ -32,11 +32,11 @@ namespace Backand.ManagersClasses
                 .ToListAsync();
             return Results.Json(links);
         }
-        private static async Task<(EntityLink, ObjectEntity)> GetObjectsLink(ApplicationContext dbContext, Construction c)
+        private static async Task<(EntityLink, ObjectEntity)> GetObjectLink(ApplicationContext dbContext, Construction c)
         {
             await dbContext.Entry(c).Reference(c => c.Object).LoadAsync();
             DbEntities.ObjectEntity bash = c.Object;
-            EntityLink bLink = new() { Id = bash.ObjectsId, Name = bash.Name };
+            EntityLink bLink = new() { Id = bash.ObjectId, Name = bash.Name };
             return (bLink, bash);
         }
         private static async Task<(EntityLink, Mine)> GetMineLink(ApplicationContext dbContext, DbEntities.ObjectEntity bash)
@@ -63,7 +63,7 @@ namespace Backand.ManagersClasses
             {
                 EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
 
-                var (bLink, bash) = await GetObjectsLink(dbContext, c);
+                var (bLink, bash) = await GetObjectLink(dbContext, c);
                 var (mLink, mine) = await GetMineLink(dbContext, bash);
                 var sLink = await GetSubsidiaryLink(dbContext, mine);
 

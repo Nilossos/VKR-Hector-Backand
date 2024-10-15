@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace Backand.DbEntities;
 
-public partial class ObjectsTransportType
+public partial class ObjectTransportType
 {
-    public int ObjectsTransportTypeId { get; set; }
+    public int ObjectTransportTypeId { get; set; }
 
-    public int? ObjectsId { get; set; }
+    public int? ObjectId { get; set; }
 
     public int? TransportTypeId { get; set; }
 
-    public virtual ObjectEntity? Objects { get; set; }
+    public virtual ObjectEntity? Object { get; set; }
 
     public virtual TransportType? TransportType { get; set; }
 }
