@@ -155,21 +155,31 @@ public class AlgorithmService
             ///filterTransportTypes используется (выбираются водный или воздушный или и тот и другой).
             var transports_FleetsToObjectsDistanceWithInfo = await _dataPreparer.GetTransportsToObjectsDistance(
                 transports_FleetsAllIds,
-		        filterTransportTypes,
-		        constructionObject.ObjectsId,
-		        cancellationToken);
+                filterTransportTypes,
+                constructionObject.ObjectsId,
+                cancellationToken);
+
+
+            //Добавляем в параметр filterTransportTypes, но сейчас в нем максимум может быть земля и воздух, а внутри метода земля отфильтровывается и остается только воздушный транспорт
+            var transports_FleetsToObjectsSkyDistanceWithInfo = await _dataPreparer.GetTransportsToObjectsSkyDistance(
+                transports_FleetsAllIds,
+                filterTransportTypes,
+                constructionObject,
+                cancellationToken);
+
+
             ///Список элеметов "транспорт_парк до объекта"
-            var transports_FleetsToObjects = transports_FleetsToObjectsDistanceWithInfo
+            var transports_FleetsToObjects = transports_FleetsToObjectsSkyDistanceWithInfo
                 .Select(pair => pair.transport)
 		        .Distinct()
 		        .ToArray();
             ///Список скорости и коэффициента для элементов "транспорт_парк до объекта"
             var notGroundTransports_FleetsSpeedAndCoeffToObject = _dataPreparer.GetTransportInfosVector(transports_FleetsToObjects);
             ///Список id элеметов "транспорт_парк до объекта"
-            var transports_FleetsIdsToObject = _dataPreparer.GetTransportsIds(transports_FleetsToObjectsDistanceWithInfo
+            var transports_FleetsIdsToObject = _dataPreparer.GetTransportsIds(transports_FleetsToObjectsSkyDistanceWithInfo
                 .Select(pair => pair.transport));
             ///Дистанции от каждого элемента "транспорт_парк до объекта" до объекта
-            var transportsToObjectDistanceDecimalVector = _dataPreparer.GetDistanceVector(transports_FleetsToObjectsDistanceWithInfo);
+            var transportsToObjectDistanceDecimalVector = _dataPreparer.GetDistanceVector(transports_FleetsToObjectsSkyDistanceWithInfo);
 
 
             ///Список дистанций с доп.инфой от складов до элемента "транспорт_парк" водавоздух (по сути до парка 2-го логиста, который повезет до объекта)
@@ -315,7 +325,7 @@ public class AlgorithmService
 			        if (nonGroundIndex != -1)
 			        {
                         var nonGroundTransportsInfos =
-                            transports_FleetsToObjectsDistanceWithInfo.Select(pair => pair.Item1)
+                            transports_FleetsToObjectsSkyDistanceWithInfo.Select(pair => pair.Item1)
 						        .Distinct().ToArray();
 				        var nonGroundTransportInfo = nonGroundTransportsInfos[nonGroundIndex];
 				        var nonGroundFleet = nonGroundTransportInfo.TransportFleet;

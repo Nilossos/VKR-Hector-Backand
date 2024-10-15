@@ -98,7 +98,95 @@ public class AlgorithmDataPreparer
 			.OrderBy(pair => pair.transport.TransportFleet_TransportId)
 			.ToArray();
 	}
-	
+    public async Task<(TransportFleet_Transport transport, TransportFleetToObjectsDistance deliveryInfo)[]> GetTransportsToObjectsSkyDistance(
+    ICollection<int> transportFleetIds, ICollection<int> transportTypeCodes, ObjectEntity objectt, CancellationToken cancellationToken)
+    {
+        var queryResult = await _applicationContext.TransportFleetToObjectsDistance
+			.Where(deliveryInfo => deliveryInfo.ObjectsId == objectt.ObjectsId &&
+								   transportFleetIds.Contains(deliveryInfo.TransportFleetId))
+			.Where(deliveryInfo => deliveryInfo
+				.TransportFleet
+				.TransportFleet_Transports
+				.Any(transport =>
+					transport.Transport != null &&
+					transport.Transport.TransportMode != null &&
+					transport.Transport.TransportMode.TransportTypeId != null &&
+					(TransportTypeValue)transport.Transport.TransportMode.TransportTypeId.Value != TransportTypeValue.Ground &&
+					transportTypeCodes.Contains(transport.Transport.TransportMode.TransportTypeId.Value)))
+			.Include(deliveryInfo => deliveryInfo.TransportFleet)
+			.ThenInclude(fleet => fleet.TransportFleet_Transports)
+			.ThenInclude(transport => transport.Transport)
+			.ThenInclude(transport => transport!.TransportMode)
+			.ThenInclude(mode => mode!.TransportType)
+			.Include(deliveryInfo => deliveryInfo.TransportFleet)
+			.ThenInclude(fleet => fleet.Company)
+			.ToListAsync(cancellationToken);
+
+        
+        var objectCoordinates = objectt.Coordinates;
+
+        return queryResult.SelectMany(deliveryInfo => deliveryInfo
+            .TransportFleet
+            .TransportFleet_Transports
+            .Where(transport =>
+                transport.Transport is { TransportMode.TransportTypeId: not null } &&
+                transport.Transport.TransportMode.TransportTypeId.Value != 
+                (int)TransportTypeValue.Ground &&
+                transportTypeCodes.Contains(transport.Transport.TransportMode.TransportTypeId.Value))
+            .Select(transport => 
+            {
+
+                var fleetCoordinates = deliveryInfo.TransportFleet.Coordinates;
+
+                // Рассчитываем расстояние с использованием формулы Haversine
+                double distance = CalculateHaversineDistance(
+                    fleetCoordinates.X,
+                    fleetCoordinates.Y,
+                    objectCoordinates.X,
+                    objectCoordinates.Y
+                );
+
+                // Обновляем значение Distance в объекте deliveryInfo
+                deliveryInfo.Distance = (decimal)distance;
+
+                return (transport, deliveryInfo);
+            }))
+        .OrderBy(pair => pair.transport.TransportFleet_TransportId)
+        .ToArray();
+    }
+
+    // Метод для расчета расстояния по формуле Haversine
+    private double CalculateHaversineDistance(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double R = 6371.0; // Радиус Земли в километрах
+
+        // Конвертируем градусы в радианы
+        double lat1Rad = DegreesToRadians(lat1);
+        double lon1Rad = DegreesToRadians(lon1);
+        double lat2Rad = DegreesToRadians(lat2);
+        double lon2Rad = DegreesToRadians(lon2);
+
+        // Разница между координатами
+        double dLat = lat2Rad - lat1Rad;
+        double dLon = lon2Rad - lon1Rad;
+
+        // Формула Haversine
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                   Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
+                   Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+        // Возвращаем расстояние
+        return R * c;
+    }
+
+    // Вспомогательный метод для конвертации градусов в радианы
+    private double DegreesToRadians(double degrees)
+    {
+        return degrees * (Math.PI / 180.0);
+    }
+
     public async Task<(TransportFleet_Transport, StorageToTransportFleetDistance distance)[]> GetStoragesToTransportFleetsInfos(
 		ICollection<int> transportIds,
 		ICollection<int> storagesIds,
@@ -253,7 +341,7 @@ public class AlgorithmDataPreparer
 			.ToList();
 	}
 
-	public long[] GetAverageSpeedsByTransport(IEnumerable<TransportFleet_Transport> transports)
+    public long[] GetAverageSpeedsByTransport(IEnumerable<TransportFleet_Transport> transports)
 	{
 		return transports
 			.Distinct()

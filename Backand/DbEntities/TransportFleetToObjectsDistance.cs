@@ -9,7 +9,7 @@ namespace Backand.DbEntities
 
         public int ObjectsId { get; init; }
 
-        public decimal? Distance { get; init; }
+        public decimal? Distance { get; set; }
         
         public TransportFleet TransportFleet { get; set; }
 
