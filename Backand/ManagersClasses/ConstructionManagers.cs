@@ -32,8 +32,8 @@ namespace Backand.ManagersClasses
                 .ToListAsync();
             return Results.Json(links);
         }
-        //Был заменен на GetObjectWithTransportTypesLink
-        private static async Task<(EntityLink, ObjectEntity)> GetObjectLink(ApplicationContext dbContext, Construction c)
+        //Был заменен на GetObjectWithTransportTypes
+        private static async Task<(EntityLink, ObjectEntity)> GetObjectWithTransportTypes(ApplicationContext dbContext, Construction c)
         {
             await dbContext.Entry(c).Reference(c => c.Object).LoadAsync();
             DbEntities.ObjectEntity bash = c.Object;

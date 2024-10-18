@@ -64,29 +64,39 @@ public class AlgorithmService
         foreach (var constructionOption in constructionOptions)
         {
 	        var order = new Order();
-			///Объект всех фильтров, выбранных для сооружения
-	        var filter = constructionOption.Filter;
+
+            var constructionId = constructionOption.ConstructionId;
+            ///Тип сооружения (качалка, вышка и тп)
+            var construction = await _dataPreparer.GetConstructionById(constructionId, cancellationToken) ??
+                               throw new NullReferenceException();
+
+            ///Объект всех фильтров, выбранных для сооружения
+            var filter = constructionOption.Filter;
 			///Объект фильтра доставки (внутри список id, выбранных типов доставки на фронте)
 			var filterTransportTypes = filter.TransportTypeIds;
-            ///Если объект фильтра доставки был пустой, то он заполняется всеми типами доставки кроме водного (3 типа: наземный, воздушный, водный)
-            if (filterTransportTypes.IsNullOrEmpty())
-			{
-                var allTransportTypes = await _dataPreparer.GetAllTransportTypeIds(cancellationToken);
-                filterTransportTypes = allTransportTypes.Where(x => x != 3).ToArray();
+
+
+            // проверка на допустимые фильтры доставки
+            var availableObjectTransportTypes = await _dataPreparer.GetObjectTypesByConstructionId(constructionId, cancellationToken) ??
+				throw new NullReferenceException();
+
+            if (availableObjectTransportTypes.IsNullOrEmpty())
+            {
+                throw new InvalidOperationException("Для объекта этого сооружения нет доступных типов доставки");
+            }else if (filterTransportTypes.IsNullOrEmpty())
+            {
+                filterTransportTypes = availableObjectTransportTypes.ToArray();
+            }
+            else if (IsOnlySeaTransportFilter(filterTransportTypes))
+            {
+                throw new InvalidOperationException("Невозможно продолжить: тип транспорта с индексом 3 (водный) не поддерживается.");
+            }else if (filterTransportTypes.Any(filterType => !availableObjectTransportTypes.Contains(filterType)))
+            {
+                throw new InvalidOperationException("Выбран недопустипый тип доставки для объекта этого сооружения");
             }
 
-			if (IsOnlySeaTransportFilter(filterTransportTypes))
-			{
-                throw new InvalidOperationException("Невозможно продолжить: тип транспорта с индексом 3 (водный) не поддерживается.");
-            }
-	        
-	        var constructionId = constructionOption.ConstructionId;
-	        ///Тип сооружения (качалка, вышка и тп)
-	        var construction = await _dataPreparer.GetConstructionById(constructionId, cancellationToken) ??
-	                           throw new NullReferenceException();
-	        
-			///Объект, на котором стоит сооружение
-	        var (constructionObject, constructionTypeId) = (construction.Object ?? throw new NullReferenceException(),
+            ///Объект, на котором стоит сооружение
+            var (constructionObject, constructionTypeId) = (construction.Object ?? throw new NullReferenceException(),
 		        construction.ConstructionTypeId);
 	        ///Заполнение Order первичной информацией (сооржуением, объектом, месторождением и дочерним обществом)
 			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };

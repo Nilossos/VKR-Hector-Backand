@@ -455,4 +455,16 @@ public class AlgorithmDataPreparer
 				group => group.Key,
 				group => group.Select(g => g.ConstructionUnitWithAmount).ToList());
 	}
+
+    public async Task<IEnumerable<int>> GetObjectTypesByConstructionId(int constructionId, CancellationToken cancellationToken) =>
+		await _applicationContext
+		.Construction
+		.Where(construction => construction.ConstructionId == constructionId)
+		.Include(construction => construction.Object)
+			.ThenInclude(@object => @object!.ObjectTransportTypes) // Загружаем связь ObjectTransportTypes
+		.SelectMany(construction => construction.Object!.ObjectTransportTypes
+			.Select(ott => ott.TransportTypeId)) // Извлекаем TransportTypeId
+		.Where(transportTypeId => transportTypeId.HasValue) // Фильтруем null значения
+		.Select(transportTypeId => transportTypeId.Value) // Извлекаем значения
+		.ToListAsync(cancellationToken);
 }
