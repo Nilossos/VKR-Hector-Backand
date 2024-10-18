@@ -153,11 +153,11 @@ public class AlgorithmService
 
             ///Список элементов "транспорт_парк до объекта". Дистанция от парка этого транспорта до объекта. Берется только вода воздух
             ///filterTransportTypes используется (выбираются водный или воздушный или и тот и другой).
-            var transports_FleetsToObjectsDistanceWithInfo = await _dataPreparer.GetTransportsToObjectsDistance(
-                transports_FleetsAllIds,
-                filterTransportTypes,
-                constructionObject.ObjectsId,
-                cancellationToken);
+            //var transports_FleetsToObjectsDistanceWithInfo = await _dataPreparer.GetTransportsToObjectsDistance(
+            //    transports_FleetsAllIds,
+            //    filterTransportTypes,
+            //    constructionObject.ObjectsId,
+            //    cancellationToken);
 
 
             //Добавляем в параметр filterTransportTypes, но сейчас в нем максимум может быть земля и воздух, а внутри метода земля отфильтровывается и остается только воздушный транспорт
@@ -169,7 +169,7 @@ public class AlgorithmService
 
 
             ///Список элеметов "транспорт_парк до объекта"
-            var transports_FleetsToObjects = transports_FleetsToObjectsSkyDistanceWithInfo
+            var transports_FleetsToObject = transports_FleetsToObjectsSkyDistanceWithInfo
                 .Select(pair => pair.transport)
 		        .Distinct()
 		        .ToArray();

@@ -98,11 +98,11 @@ public class AlgorithmDataPreparer
 			.OrderBy(pair => pair.transport.TransportFleet_TransportId)
 			.ToArray();
 	}
-    public async Task<(TransportFleet_Transport transport, TransportFleetToObjectsDistance deliveryInfo)[]> GetTransportsToObjectsSkyDistance(
+    public async Task<(TransportFleet_Transport transport, TransportFleetToObjectDistance deliveryInfo)[]> GetTransportsToObjectsSkyDistance(
     ICollection<int> transportFleetIds, ICollection<int> transportTypeCodes, ObjectEntity objectt, CancellationToken cancellationToken)
     {
-        var queryResult = await _applicationContext.TransportFleetToObjectsDistance
-			.Where(deliveryInfo => deliveryInfo.ObjectsId == objectt.ObjectsId &&
+        var queryResult = await _applicationContext.TransportFleetToObjectDistance
+			.Where(deliveryInfo => deliveryInfo.ObjectId == objectt.ObjectId &&
 								   transportFleetIds.Contains(deliveryInfo.TransportFleetId))
 			.Where(deliveryInfo => deliveryInfo
 				.TransportFleet

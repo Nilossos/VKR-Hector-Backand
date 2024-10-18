@@ -3,8 +3,8 @@
 namespace Backand.FrontendEntities
 {
     public record ConstructionTable(
-        EntityLink Construction, 
-        EntityLink Object, 
+        EntityLink Construction,
+        ObjectWithTransportTypesLink Object, 
         EntityLink Mine, 
         EntityLink Subsidiary);
 }

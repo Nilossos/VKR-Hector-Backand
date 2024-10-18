@@ -32,11 +32,27 @@ namespace Backand.ManagersClasses
                 .ToListAsync();
             return Results.Json(links);
         }
+        //Был заменен на GetObjectWithTransportTypesLink
         private static async Task<(EntityLink, ObjectEntity)> GetObjectLink(ApplicationContext dbContext, Construction c)
         {
             await dbContext.Entry(c).Reference(c => c.Object).LoadAsync();
             DbEntities.ObjectEntity bash = c.Object;
             EntityLink bLink = new() { Id = bash.ObjectId, Name = bash.Name };
+            return (bLink, bash);
+        }
+        private static async Task<(ObjectWithTransportTypesLink, ObjectEntity)> GetObjectWithTransportTypesLink(ApplicationContext dbContext, Construction c)
+        {
+            await dbContext.Entry(c)
+                   .Reference(c => c.Object)
+                   .Query()
+                   .Include(o => o.ObjectTransportTypes) // Загружаем ObjectTransportTypes
+                   .LoadAsync();
+            DbEntities.ObjectEntity bash = c.Object;
+            int?[] transportTypeIds = bash.ObjectTransportTypes
+                             .Select(ott => ott.TransportTypeId)
+                             .Distinct()
+                             .ToArray();
+            ObjectWithTransportTypesLink bLink = new() { Id = bash.ObjectId, Name = bash.Name, TransportTypes = transportTypeIds };
             return (bLink, bash);
         }
         private static async Task<(EntityLink, Mine)> GetMineLink(ApplicationContext dbContext, DbEntities.ObjectEntity bash)
@@ -63,7 +79,7 @@ namespace Backand.ManagersClasses
             {
                 EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
 
-                var (bLink, bash) = await GetObjectLink(dbContext, c);
+                var (bLink, bash) = await GetObjectWithTransportTypesLink(dbContext, c);
                 var (mLink, mine) = await GetMineLink(dbContext, bash);
                 var sLink = await GetSubsidiaryLink(dbContext, mine);
 

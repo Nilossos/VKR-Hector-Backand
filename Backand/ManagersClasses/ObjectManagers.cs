@@ -1,5 +1,6 @@
 ﻿using Backand.DbEntities;
 using Backand.FrontendEntities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backand.ManagersClasses
 {
