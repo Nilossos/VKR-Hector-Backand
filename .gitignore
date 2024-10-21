@@ -365,3 +365,4 @@ FodyWeavers.xsd
 #Yandex maps api...(добавить список сервисов в будущем)
 /Backand/external_services.json
 /Backand/AppContextOptions.cs
+/Backand/AppContextOptions.cs
