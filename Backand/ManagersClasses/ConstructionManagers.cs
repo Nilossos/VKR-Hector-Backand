@@ -26,11 +26,12 @@ namespace Backand.ManagersClasses
         //Get by object id
         public static async Task<IResult> GetConstructionsByObjectId(int object_id, ApplicationContext dbContext)
         {
-            var links = await dbContext.Construction
+            var constructions = await dbContext.Construction
                 .Include(c => c.ConstructionState)
+                .Include(c => c.BuildWay)
                 .Where(c => c.ObjectId == object_id)
                 .ToListAsync();
-            return Results.Json(links);
+            return Results.Json(constructions);
         }
         //Был заменен на GetObjectWithTransportTypes
         private static async Task<(EntityLink, ObjectEntity)> GetObjectWithTransportTypes(ApplicationContext dbContext, Construction c)
