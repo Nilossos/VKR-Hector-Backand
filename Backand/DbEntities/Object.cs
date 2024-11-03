@@ -1,15 +1,18 @@
 ﻿using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities;
 using Backand.FrontendEntities.Links;
+using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities
 {
     public partial class ObjectEntity
 	{
-		public int ObjectId { get; set; }
+        [Key]
+        public int ObjectId { get; set; }
 
 		public string? Name { get; set; }
 
@@ -18,18 +21,15 @@ namespace Backand.DbEntities
 
 		public Spot Spot { get => Coordinates.ToSpot(); }
 
-		public int MineId { get; set; }
-
 		public int RegionId { get; set; }
 
 		public bool ContainsAssemblyShop { get; set; }
-
-		public virtual ICollection<Construction> Constructions { get; set; } = new List<Construction>();
-
+        [JsonIgnore]
+        public virtual ICollection<Construction> Constructions { get; set; }
+		public int MineId { get; set; }
 		public virtual Mine? Mine { get; set; }
-
-		public virtual ICollection<ObjectTransportType> ObjectTransportTypes { get; set; } = new List<ObjectTransportType>();
-
+        [JsonIgnore]
+        public virtual ICollection<ObjectTransportType> ObjectTransportTypes { get; set; }
 		public virtual Region? Region { get; set; }
 
 		[JsonIgnore]

@@ -49,7 +49,7 @@ namespace Backand.ManagersClasses
                    .Include(o => o.ObjectTransportTypes) // Загружаем ObjectTransportTypes
                    .LoadAsync();
             DbEntities.ObjectEntity bash = c.Object;
-            int?[] transportTypeIds = bash.ObjectTransportTypes
+            int[] transportTypeIds = bash.ObjectTransportTypes
                              .Select(ott => ott.TransportTypeId)
                              .Distinct()
                              .ToArray();
@@ -72,23 +72,51 @@ namespace Backand.ManagersClasses
         }
         public static async Task<IResult> GetPlannedConstructions(ApplicationContext dbContext)
         {
-            var constructions = await dbContext.Construction.
-                                        Where(c => c.ConstructionStateId == BuildState.Planned).
-                                        ToListAsync();
-            List<ConstructionTable> tables = new();
-            foreach (var c in constructions)
-            {
-                EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
+            var constructions = await dbContext.Construction
+             .Where(c => c.ConstructionStateId == BuildState.Planned)
+             .Select(c => new
+             {
+                 // ... other Construction properties (map them correctly)
+                 ConstructionId = c.ConstructionId, // Example
+                 ConstructionName = c.ConstructionName, // Example
 
-                var (bLink, bash) = await GetObjectWithTransportTypesLink(dbContext, c);
-                var (mLink, mine) = await GetMineLink(dbContext, bash);
-                var sLink = await GetSubsidiaryLink(dbContext, mine);
+                 Object = new
+                 {
+                     ObjectId = c.Object.ObjectId,
+                     Name = c.Object.Name,
+                     Mine = new
+                     {
+                         MineId = c.Object.Mine.MineId,
+                         Name = c.Object.Mine.Name,
+                         Subsidiary = new
+                         {
+                             SubsidiaryId = c.Object.Mine.Subsidiary.SubsidiaryId,
+                             Name = c.Object.Mine.Subsidiary.Name,
+                         }
+                     },
+                     TransportTypes = c.Object.ObjectTransportTypes.Select(t => new
+                     {
+                         TransportTypeId = t.TransportType.TransportTypeId,
+                         TransportTypeName = t.TransportType.Name,
+                     }).ToList()
+                 }
+             })
+             .ToListAsync();
 
-                ConstructionTable table = new(cLink, bLink, mLink, sLink);
-                tables.Add(table);
-            }
+            //List<ConstructionTable> tables = new();
+            //foreach (var c in constructions)
+            //{
+            //    EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
 
-            return Results.Json(tables);
+            //    var (bLink, bash) = await GetObjectWithTransportTypesLink(dbContext, c);
+            //    var (mLink, mine) = await GetMineLink(dbContext, bash);
+            //    var sLink = await GetSubsidiaryLink(dbContext, mine);
+
+            //    ConstructionTable table = new(cLink, bLink, mLink, sLink);
+            //    tables.Add(table);
+            //}
+
+            return Results.Json(constructions);
         }
         public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext, HttpContext httpContext)
         {

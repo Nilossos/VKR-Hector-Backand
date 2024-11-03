@@ -9,7 +9,7 @@ namespace Backand.Services.AlgorithmServices.AlgorithmSolvers;
 /// <summary>
 /// Алгоритм балансовой минимизации.
 /// </summary>
-[SolverFilter(FilterMethod.Balanced)]
+[SolverFilter(TargetMark.Balanced)]
 public class CostAndTimeMinimizationSolver : CpSatAlgorithmBaseSolver
 {
     public CostAndTimeMinimizationSolver(AlgorithmSolverParameters parameters) : base(parameters) { }

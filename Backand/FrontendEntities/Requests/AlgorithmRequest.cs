@@ -9,7 +9,7 @@ namespace Backand.FrontendEntities.Requests
 		Block 
 	}
 
-	public enum FilterMethod
+	public enum TargetMark
 	{
 		Time = 0,
 		Money,
@@ -18,8 +18,8 @@ namespace Backand.FrontendEntities.Requests
 
 	public class Filter
 	{
-		[JsonPropertyName("filterMethod")]
-		public FilterMethod FilterMethod { get; init; }
+		[JsonPropertyName("targetMark")]
+		public TargetMark TargetMark { get; init; }
 		[JsonPropertyName("buildType")]
 		public BuildType BuildType { get; init; }
 		[JsonPropertyName("transportTypeIds")]
@@ -40,14 +40,15 @@ namespace Backand.FrontendEntities.Requests
 		public List<int> Ids { get; init; }
 	}
 
-	public class ConstructionOption
+	public class ConstructionWithFilters
 	{
 		public int ConstructionId { get; init; }
-		public Filter Filter { get; init; }
+        //public Boolean Checked { get; init; }
+        public Filter Filter { get; init; }
 	}
 
 	public class AlgorithmRequest
 	{
-		public List<ConstructionOption> ConstructionOptions { get; init; }
+		public List<ConstructionWithFilters> Data { get; init; }
 	}
 }

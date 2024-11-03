@@ -8,7 +8,7 @@ namespace Backand.Services.AlgorithmServices.AlgorithmSolvers.Attributes;
 [AttributeUsage(AttributeTargets.Class)]
 public class SolverFilterAttribute : Attribute
 {
-    public FilterMethod FilterMethod { get; }
+    public TargetMark FilterMethod { get; }
 
-    public SolverFilterAttribute(FilterMethod filterMethod) => FilterMethod = filterMethod;
+    public SolverFilterAttribute(TargetMark filterMethod) => FilterMethod = filterMethod;
 }

@@ -19,21 +19,21 @@ public class AlgorithmSolverBuilder
     /// </summary>
     /// 
     //каким то образом словарь собирает в себя по ключу нужные функции в методе GetAlgorithmsConstructorsDictionaryFromAssembly
-    private static readonly Dictionary<FilterMethod, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>
+    private static readonly Dictionary<TargetMark, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>
         AlgorithmsConstructorsDictionary = GetAlgorithmsConstructorsDictionaryFromAssembly(Assembly.GetExecutingAssembly());
 
     public AlgorithmSolverBuilder(AlgorithmSolverParameters parameters) => _parameters = parameters;
 
     //Здесь solver попадает функция, которая хранится в AlgorithmsConstructorsDictionary. Функция выбирается в зависимости от ключа (filterMethod)
     //у функции вызывается родительский SetMinimization. В реальности отработает одна из этих: TimeMinimizationSolver, CostMinimizationSolver или TimeAndConstMinimizationSolver
-    public CpSatAlgorithmBaseSolver BuildSolverFromFilterMethod(FilterMethod filterMethod)
+    public CpSatAlgorithmBaseSolver BuildSolverFromFilterMethod(TargetMark filterMethod)
     {
         var solver = AlgorithmsConstructorsDictionary[filterMethod](_parameters);
         solver.SetMinimization();
         return solver;
     }
 
-    private static Dictionary<FilterMethod, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>
+    private static Dictionary<TargetMark, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>
         GetAlgorithmsConstructorsDictionaryFromAssembly(Assembly assembly)
     {
         var attributesAndSolversTypes = assembly
@@ -42,7 +42,7 @@ public class AlgorithmSolverBuilder
                 .Any(a => a.AttributeType == typeof(SolverFilterAttribute)))
             .Select(type => Tuple.Create(type.GetCustomAttribute<SolverFilterAttribute>(), type));
 
-        var result = new Dictionary<FilterMethod, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>();
+        var result = new Dictionary<TargetMark, Func<AlgorithmSolverParameters, CpSatAlgorithmBaseSolver>>();
 
         foreach (var attributeAndSolverType in attributesAndSolversTypes)
         {

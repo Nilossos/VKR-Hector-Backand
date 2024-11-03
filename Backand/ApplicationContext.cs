@@ -81,8 +81,9 @@ namespace Backand
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseNpgsql(AppContextOptions.Options);
-		}
+            //optionsBuilder.UseLazyLoadingProxies();
+            optionsBuilder.UseNpgsql(AppContextOptions.Options);
+        }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

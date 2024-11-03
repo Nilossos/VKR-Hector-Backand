@@ -11,7 +11,7 @@ namespace Backand.DbEntities
 
         public decimal? Distance { get; set; }
         
-        public TransportFleet TransportFleet { get; set; }
+        public virtual TransportFleet TransportFleet { get; set; }
 
     }
 }

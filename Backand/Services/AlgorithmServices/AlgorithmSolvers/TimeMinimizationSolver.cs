@@ -9,7 +9,7 @@ namespace Backand.Services.AlgorithmServices.AlgorithmSolvers;
 /// <summary>
 /// Алгоритм минимизации времени.
 /// </summary>
-[SolverFilter(FilterMethod.Time)]
+[SolverFilter(TargetMark.Time)]
 public class TimeMinimizationSolver : CpSatAlgorithmBaseSolver
 {
     public TimeMinimizationSolver(AlgorithmSolverParameters parameters) : base(parameters) { }

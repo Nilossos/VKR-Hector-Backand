@@ -57,7 +57,7 @@ public class AlgorithmService
     public async Task<AlgorithmResponse> GetAlgorithmSolve(AlgorithmRequest request, CancellationToken cancellationToken)
     {
 		///Список сооружений с фильтрами у каждого
-        var constructionOptions = request.ConstructionOptions;
+        var constructionOptions = request.Data;
 		///Ответ алгоритма
         var result = new List<Order>();
 		///Для каждого сооружения отдельно высчитывается Order (список лучших комплексных вариантов)
@@ -99,7 +99,7 @@ public class AlgorithmService
             var (constructionObject, constructionTypeId) = (construction.Object ?? throw new NullReferenceException(),
 		        construction.ConstructionTypeId);
 	        ///Заполнение Order первичной информацией (сооржуением, объектом, месторождением и дочерним обществом)
-			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
+			order.Construction = construction;
 			order.Object = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
 			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
 			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };
@@ -269,7 +269,7 @@ public class AlgorithmService
                 //solver это объект от Or-tools Google. Используется для оптимизации
                 // filter.FilterMethod - время/цена/средний
                 var solver = new AlgorithmSolverBuilder(solverParameters)
-			        .BuildSolverFromFilterMethod(filter.FilterMethod);
+			        .BuildSolverFromFilterMethod(filter.TargetMark);
 		        
 		        var resultInfos = solver.GetResult();
 		        

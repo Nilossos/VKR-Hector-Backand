@@ -6,7 +6,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 {
 	public class DataFiltering
 	{
-		internal static List<TransportOnFleetWithRegions> FilterFleetsByLogisticCompanies(List<TransportOnFleetWithRegions> transportsOnFleets, ConstructionOption constructionOption)
+		internal static List<TransportOnFleetWithRegions> FilterFleetsByLogisticCompanies(List<TransportOnFleetWithRegions> transportsOnFleets, ConstructionWithFilters constructionOption)
 		{
 			if (constructionOption.Filter.CertainManufacturers.Ids.Count > 0)
 				return transportsOnFleets
@@ -16,7 +16,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 				return transportsOnFleets;
 		}
 
-		internal static List<StorageMaterial> FilterMaterialsByManufacturers(List<StorageMaterial> storagesMaterials, ConstructionOption constructionOption)
+		internal static List<StorageMaterial> FilterMaterialsByManufacturers(List<StorageMaterial> storagesMaterials, ConstructionWithFilters constructionOption)
 		{
 			if (constructionOption.Filter.CertainLogists.Ids.Count > 0)
 				return storagesMaterials
