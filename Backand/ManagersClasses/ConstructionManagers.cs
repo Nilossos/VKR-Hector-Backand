@@ -49,7 +49,7 @@ namespace Backand.ManagersClasses
                    .Include(o => o.ObjectTransportTypes) // Загружаем ObjectTransportTypes
                    .LoadAsync();
             DbEntities.ObjectEntity bash = c.Object;
-            int?[] transportTypeIds = bash.ObjectTransportTypes
+            int[] transportTypeIds = bash.ObjectTransportTypes
                              .Select(ott => ott.TransportTypeId)
                              .Distinct()
                              .ToArray();
@@ -72,23 +72,51 @@ namespace Backand.ManagersClasses
         }
         public static async Task<IResult> GetPlannedConstructions(ApplicationContext dbContext)
         {
-            var constructions = await dbContext.Construction.
-                                        Where(c => c.ConstructionStateId == BuildState.Planned).
-                                        ToListAsync();
-            List<ConstructionTable> tables = new();
-            foreach (var c in constructions)
-            {
-                EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
+            var constructions = await dbContext.Construction
+             .Where(c => c.ConstructionStateId == BuildState.Planned)
+             .Select(c => new
+             {
+                 // ... other Construction properties (map them correctly)
+                 ConstructionId = c.ConstructionId, // Example
+                 ConstructionName = c.ConstructionName, // Example
 
-                var (bLink, bash) = await GetObjectWithTransportTypesLink(dbContext, c);
-                var (mLink, mine) = await GetMineLink(dbContext, bash);
-                var sLink = await GetSubsidiaryLink(dbContext, mine);
+                 Object = new
+                 {
+                     ObjectId = c.Object.ObjectId,
+                     Name = c.Object.Name,
+                     Mine = new
+                     {
+                         MineId = c.Object.Mine.MineId,
+                         Name = c.Object.Mine.Name,
+                         Subsidiary = new
+                         {
+                             SubsidiaryId = c.Object.Mine.Subsidiary.SubsidiaryId,
+                             Name = c.Object.Mine.Subsidiary.Name,
+                         }
+                     },
+                     TransportTypes = c.Object.ObjectTransportTypes.Select(t => new
+                     {
+                         TransportTypeId = t.TransportType.TransportTypeId,
+                         TransportTypeName = t.TransportType.Name,
+                     }).ToList()
+                 }
+             })
+             .ToListAsync();
 
-                ConstructionTable table = new(cLink, bLink, mLink, sLink);
-                tables.Add(table);
-            }
+            //List<ConstructionTable> tables = new();
+            //foreach (var c in constructions)
+            //{
+            //    EntityLink cLink = new() { Id = c.ConstructionId, Name = c.ConstructionName };
 
-            return Results.Json(tables);
+            //    var (bLink, bash) = await GetObjectWithTransportTypesLink(dbContext, c);
+            //    var (mLink, mine) = await GetMineLink(dbContext, bash);
+            //    var sLink = await GetSubsidiaryLink(dbContext, mine);
+
+            //    ConstructionTable table = new(cLink, bLink, mLink, sLink);
+            //    tables.Add(table);
+            //}
+
+            return Results.Json(constructions);
         }
         public static async Task<IResult> GetConstructionById(int construction_id, ApplicationContext dbContext, HttpContext httpContext)
         {
@@ -111,36 +139,51 @@ namespace Backand.ManagersClasses
         //Create new object 
         public static async Task CreateConstruction(HttpContext context, ApplicationContext dbContext)
         {
-            BaseResponse response;
             try
             {
                 var constructions = dbContext.Construction;
-
-                //var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
-                //Console.WriteLine("Received JSON:");
-                //Console.WriteLine(requestBody); // Логируем присланный JSON
 
                 Construction? construction = await context.Request.ReadFromJsonAsync<Construction>(new JsonSerializerOptions()
                 {
                     PropertyNamingPolicy = new CustomCammelCase()
                 });
 
+                if (construction.ConstructionName == "")
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(true, "Название обязательно для заполнения."));
+                    return;
+                }
+
+                if (construction.ConstructionTypeId == 0)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(true, "Тип обязателен для заполнения."));
+                    return;
+                }
+
                 if (construction != null)
                 {
                     construction.ConstructionStateId = BuildState.Planned;
                     await constructions.AddAsync(construction);
                     await dbContext.SaveChangesAsync();
-                    response = new(false, "Сооружение добавлено!");
+
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(false, "Сооружение добавлено!"));
+                    return; // Important: Exit early after successful processing
                 }
                 else
-                    response = new(true, "Неправильные передаваемые данные о сооружении!");
-
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest; // Explicitly set 400
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(true, "Неправильные передаваемые данные о сооружении!"));
+                    return; // Exit
+                }
             }
             catch (Exception exc)
             {
-                response = new(true, exc.ToString());
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError; // Set 500 for server errors
+                await context.Response.WriteAsJsonAsync(new BaseResponse(true, exc.Message)); // Log just the message, not the whole stack trace for security
+                return; // Exit
             }
-            await context.Response.WriteAsJsonAsync(response);
         }
 
         //Update object

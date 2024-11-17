@@ -1,12 +1,14 @@
 ﻿using Backand.FrontendEntities.Links;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Backand.DbEntities;
 
 public partial class TransportType
 {
+    [Key]
     public int TransportTypeId { get; set; }
 
     public string Name { get; set; }

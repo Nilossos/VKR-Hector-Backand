@@ -19,15 +19,15 @@ namespace Backand.DbEntities
 
 		public string? DocumentPath { get; set; }
 
-		[JsonIgnore]
 		public int? SubsidiaryId { get; set; }
-		[JsonIgnore]
+        public virtual Subsidiary? Subsidiary { get; set; }
+
+        [JsonIgnore]
 		public MineLink Link { get => new() { 
 			Id = MineId, Name = Name, Coordination = Center, Objects = Objects.Select(o=>o.MapLink).ToArray()
 		};}
 		[JsonIgnore]
 		public virtual ICollection<ObjectEntity> Objects { get; set; } = new List<ObjectEntity>();
 
-        public virtual Subsidiary? Subsidiary { get; set; }
     }
 }

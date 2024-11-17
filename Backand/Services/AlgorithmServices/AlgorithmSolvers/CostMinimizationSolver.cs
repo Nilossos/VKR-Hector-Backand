@@ -9,7 +9,7 @@ namespace Backand.Services.AlgorithmServices.AlgorithmSolvers;
 /// <summary>
 /// Алгоритм минимизации цены и времени.
 /// </summary>
-[SolverFilter(FilterMethod.Money)]
+[SolverFilter(TargetMark.Money)]
 public class CostMinimizationSolver : CpSatAlgorithmBaseSolver
 {
     public CostMinimizationSolver(AlgorithmSolverParameters parameters) : base(parameters) { }

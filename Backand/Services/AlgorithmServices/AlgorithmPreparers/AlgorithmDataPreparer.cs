@@ -464,7 +464,7 @@ public class AlgorithmDataPreparer
 			.ThenInclude(@object => @object!.ObjectTransportTypes) // Загружаем связь ObjectTransportTypes
 		.SelectMany(construction => construction.Object!.ObjectTransportTypes
 			.Select(ott => ott.TransportTypeId)) // Извлекаем TransportTypeId
-		.Where(transportTypeId => transportTypeId.HasValue) // Фильтруем null значения
-		.Select(transportTypeId => transportTypeId.Value) // Извлекаем значения
+		//.Where(transportTypeId => transportTypeId.HasValue) // Фильтруем null значения
+		.Select(transportTypeId => transportTypeId) // Извлекаем значения
 		.ToListAsync(cancellationToken);
 }

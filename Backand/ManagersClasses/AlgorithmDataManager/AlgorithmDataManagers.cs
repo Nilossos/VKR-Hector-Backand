@@ -39,7 +39,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 		internal static async Task CalculateOrderCostTime(HttpContext context, ApplicationContext dbContext, DistanceService distanceService)
 		{
 			AlgorithmRequest? algorithmRequest = await context.Request.ReadFromJsonAsync<AlgorithmRequest>() ?? throw new ArgumentNullException("Пустое тело запроса!");
-			List<ConstructionOption> constructionOptions = algorithmRequest.ConstructionOptions;
+			List<ConstructionWithFilters> constructionOptions = algorithmRequest.Data;
 
 			AlgorithmData dataTuple = await LoadData(dbContext, distanceService);
 			var (constructions, storages, transportFleets, transportsOnFleetsAll, materialSets, storagesMaterialsAll, storageToObjectDistances, storageToTransportFleetDistance, transportFleetToObjectDistance) = dataTuple;
@@ -93,7 +93,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 					var storagesManufacturer = GetManufacturersByStorageIds(uniqueStorageIds, dbContext, dataTuple);
 
 					var orderVariants = CalculateOrderVariants(storageMaterialMatrix, uniqueStorageIds, storagesManufacturer);
-					SortCostAndTimeListByFilterMethod(orderVariants, constructionOption.Filter.FilterMethod);
+					SortCostAndTimeListByFilterMethod(orderVariants, constructionOption.Filter.TargetMark);
 
 					response.Orders.Add(await GetOrderVariantsWithInfoAsync(orderVariants, dataTuple, constructionUnits, storagesManufacturer, isAssemblyBuildRequired, constructionOption.ConstructionId, dbContext));
 				}
@@ -143,11 +143,11 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
         private static bool IsValidAlgorithmRequest(AlgorithmRequest request)
         {
             // Проверяем, есть ли ConstructionOptions
-            if (request.ConstructionOptions == null || !request.ConstructionOptions.Any())
+            if (request.Data == null || !request.Data.Any())
                 return false;
 
             // Проходим по каждому ConstructionOption и проверяем его валидность
-            foreach (var option in request.ConstructionOptions)
+            foreach (var option in request.Data)
             {
                 if (option.ConstructionId <= 0)
                     return false;

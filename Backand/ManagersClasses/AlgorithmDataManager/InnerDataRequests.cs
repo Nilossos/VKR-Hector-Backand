@@ -67,7 +67,7 @@ namespace Backand.ManagersClasses.AlgorithmDataManager
 			var construction = await GetConstructionById(context, constructionId) ??
 							   throw new NullReferenceException();
 
-			order.Construction = new EntityLink { Id = constructionId, Name = construction.ConstructionName };
+			order.Construction = construction;
 			order.Object = new EntityLink { Id = construction.ObjectId, Name = construction.Object.Name! };
 			order.Mine = new EntityLink { Id = construction.Object.MineId, Name = construction.Object.Mine!.Name };
 			order.Subsidiary = new EntityLink { Id = construction.Object.Mine.SubsidiaryId ?? 0, Name = construction.Object.Mine.Subsidiary.Name };

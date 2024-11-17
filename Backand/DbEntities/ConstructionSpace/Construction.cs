@@ -11,24 +11,25 @@ namespace Backand.DbEntities.ConstructionSpace
     //[JsonConverter(typeof(ConstructionSerializer))]
     public partial class Construction
     {
+        [Key]
         public int ConstructionId { get; set; }
 
         public string ConstructionName { get; set; } = null!;
 
         public int ConstructionTypeId { get; set; }
-        public ConstructionType? ConstructionType { get; set; }
+        public virtual ConstructionType? ConstructionType { get; set; }
 
         public BuildState? ConstructionStateId { get; set; }
         [ForeignKey(nameof(ConstructionStateId))]
-        public ConstructionState? ConstructionState { get; set; }
+        public virtual ConstructionState? ConstructionState { get; set; }
 
         public BuildWay? BuildWayId { get; set; }
         [ForeignKey(nameof(BuildWayId))]
-        public ConstructionUnitType? BuildWay { get; set; }
+        public virtual ConstructionUnitType? BuildWay { get; set; }
 
         public int ObjectId { get; set; }
-        [ForeignKey(nameof(ObjectId))] // Добавлен ForeignKey
-        public ObjectEntity? Object { get; set; } // Изменено имя на более понятное
+        [ForeignKey(nameof(ObjectId))]
+        public virtual ObjectEntity Object { get; set; }
 
         //[JsonIgnore]
         //public EntityLink Link { get => new() { Id = ConstructionId, Name = ConstructionName }; }
