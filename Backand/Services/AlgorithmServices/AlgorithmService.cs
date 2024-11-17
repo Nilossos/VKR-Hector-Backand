@@ -303,15 +303,16 @@ public class AlgorithmService
 			        var fleet = groundTransportInfo.TransportFleet;
 			        var company = fleet?.Company;
 			        var logisticCompany = company?.LogisticCompany;
-			        
-			        var groundDeliveryDistance = transportsToStoragesDistanceGroundMatrix[groundIndex, storageIndex] + 
+                    var logisticCompanyManufacturer = company?.Manufacturer;
+
+                    var groundDeliveryDistance = transportsToStoragesDistanceGroundMatrix[groundIndex, storageIndex] + 
 				        ((nonGroundIndex != -1) ? storagesToNotGroundTransports_FleetsDecimalMatrix[storageIndex, nonGroundIndex] : objectToStoragesDistance[storageIndex]);
 
 			        var groundLogisticInfo = new LogisticInfo
 			        {
-				        LogisticCompanyName = (fleet != null && logisticCompany != null)
-					        ? logisticCompany.Name
-					        : "Неопределено",
+				        LogisticCompanyName = (fleet != null)
+                            ? (logisticCompany?.Name ?? logisticCompanyManufacturer?.Name ?? "Неопределено")
+                            : "Неопределено",
 				        TransportFleetName = (fleet != null) ? fleet.Name : "Неопределено",
 				        TransportFleetAddress = (fleet != null) ? fleet.Address : "Неопределено",
 				        TransportName = groundTransportInfo.Transport.Name,
@@ -339,14 +340,16 @@ public class AlgorithmService
 						        .Distinct().ToArray();
 				        var nonGroundTransportInfo = nonGroundTransportsInfos[nonGroundIndex];
 				        var nonGroundFleet = nonGroundTransportInfo.TransportFleet;
-				        var nonGroundLogisticCompany = company?.LogisticCompany;
-				        var nonGroundDeliveryDistance = transportsToObjectDistanceDecimalVector[nonGroundIndex];
+                        var nonGroundFleetCompany = nonGroundFleet?.Company;
+                        var nonGroundLogisticCompany = nonGroundFleetCompany?.LogisticCompany;
+                        var nonGroundLogisticCompanyManufacturer = nonGroundFleetCompany?.Manufacturer;
+                        var nonGroundDeliveryDistance = transportsToObjectDistanceDecimalVector[nonGroundIndex];
 				        
 				        var nonGroundLogisticInfo = new LogisticInfo()
 				        {
-					        LogisticCompanyName = (nonGroundFleet != null && nonGroundLogisticCompany != null)
-						        ? nonGroundLogisticCompany.Name
-						        : "Неопределено",
+					        LogisticCompanyName = (nonGroundFleet != null)
+                                ? (nonGroundLogisticCompany?.Name ?? nonGroundLogisticCompanyManufacturer?.Name ?? "Неопределено")    
+                                : "Неопределено",
 					        TransportFleetName = (nonGroundFleet != null) ? nonGroundFleet.Name : "Неопределено",
 					        TransportFleetAddress = (nonGroundFleet != null) ? nonGroundFleet.Address : "Неопределено",
 					        TransportName = nonGroundTransportInfo.Transport.Name,

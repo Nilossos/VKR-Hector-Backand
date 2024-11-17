@@ -119,8 +119,12 @@ public class AlgorithmDataPreparer
 			.ThenInclude(transport => transport!.TransportMode)
 			.ThenInclude(mode => mode!.TransportType)
 			.Include(deliveryInfo => deliveryInfo.TransportFleet)
-			.ThenInclude(fleet => fleet.Company)
-			.ToListAsync(cancellationToken);
+				.ThenInclude(fleet => fleet.Company)
+					.ThenInclude(company => (company == null) ? null : company.LogisticCompany)
+			.Include(deliveryInfo => deliveryInfo.TransportFleet)
+				.ThenInclude(fleet => fleet.Company)
+                    .ThenInclude(company => (company == null) ? null : company.Manufacturer)
+            .ToListAsync(cancellationToken);
 
         
         var objectCoordinates = objectt.Coordinates;
@@ -283,9 +287,20 @@ public class AlgorithmDataPreparer
 			.Include(deliveryInfo => deliveryInfo.TransportFleet)
 				.ThenInclude(fleet => fleet.Company)
 					.ThenInclude(company => (company == null) ? null : company.LogisticCompany)
-			.ToListAsync(cancellationToken);
-		
-			return queryResult.SelectMany(deliveryInfo => (deliveryInfo
+			.Include(deliveryInfo => deliveryInfo.TransportFleet)
+				.ThenInclude(fleet => fleet.Company)
+                    .ThenInclude(company => (company == null) ? null : company.Manufacturer)
+            .ToListAsync(cancellationToken);
+        //выше приходится добавлять и Manufacturer
+        //так как company.LogisticCompany может вернуться как null.
+        //В бд есть сущность компании, а также 2 сущности:
+        //LogisticCompany и Manufacturer, которые распределяют между собой
+        //id из сущности Companies. Но логистом может быть и компания-логист(LogisticCompany)
+        //и компания производитель (Manufacturer). Сейчас в бд у Manufacturer тоже есть
+        //парки транспорта. Поэтому он включается в выборку и приходится брать и company.LogisticCompany
+        // и company.Manufacturer. (костыль да, надо потом бд править)
+
+        return queryResult.SelectMany(deliveryInfo => (deliveryInfo
 				.TransportFleet
 				.TransportFleet_Transports
 				.Where(transport =>
