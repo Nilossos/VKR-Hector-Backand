@@ -86,8 +86,7 @@ public class AlgorithmService
             }else if (filterTransportTypes.IsNullOrEmpty())
             {
                 filterTransportTypes = availableObjectTransportTypes.ToArray();
-            }
-            else if (IsOnlySeaTransportFilter(filterTransportTypes))
+            }else if (IsOnlySeaTransportFilter(filterTransportTypes))
             {
                 throw new InvalidOperationException("Невозможно продолжить: тип транспорта с индексом 3 (водный) не поддерживается.");
             }else if (filterTransportTypes.Any(filterType => !availableObjectTransportTypes.Contains(filterType)))
@@ -128,7 +127,8 @@ public class AlgorithmService
             ///Список элементов "транспорт_парк" (повторяются) из transports_FleetsToStoragesDistanceWithInfo
             var transports_FleetsGround = transports_FleetsToStoragesDistanceWithInfoGround
                 .Select(pair => pair.Item1)
-		        .ToArray();
+                .DistinctBy(x => x.TransportFleet_TransportId)
+                .ToArray();
             ///Список id элементов "транспорт_парк" (не повторяются) из transports_FleetsToStoragesDistanceWithInfo
             var transports_FleetsGroundIds = _dataPreparer.GetTransportsIds(transports_FleetsToStoragesDistanceWithInfoGround
                 .Select(pair => pair.Item1));

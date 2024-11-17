@@ -144,7 +144,7 @@ public abstract class CpSatAlgorithmBaseSolver
             //на 1 слкад. Хотя нужно сделать так, чтобы i-й транспорт существовал в бесконечных экземплярах и мог быть использован для параллельной паездки на разные склады.
             //возможно так Model.Add(transportToStoragesAssignsSum <= maxAssignmentsPerTransport);, но надо проверить
             var transportToStoragesAssignsSum = LinearExpr.Sum(transportToStoragesAssignsVector);
-            Model.Add(transportToStoragesAssignsSum <= 1);
+            Model.Add(transportToStoragesAssignsSum <= StoragesCount);
         }
     }
 
@@ -162,8 +162,7 @@ public abstract class CpSatAlgorithmBaseSolver
             }
 
             var transportsToStorageAssignsSum = LinearExpr.Sum(transportsToStorageAssignsVector);
-            Model.Add(transportsToStorageAssignsSum <= 1);
-            //пока непонятно почему сразу назначается, что этот транспорт поедет и до объекта, если может поехать до второго логиста
+            Model.Add(transportsToStorageAssignsSum <= TransportsToStoragesCount);
             Model.Add(StorageAssignVariableVector[i] == transportsToStorageAssignsSum);
         }
     }

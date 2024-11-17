@@ -35,6 +35,8 @@ public class CostAndTimeMinimizationSolver : CpSatAlgorithmBaseSolver
                 var timesTransportToObject = new LinearExpr[StoragesToNotGroundTransportsCount];
                 for (var z = 0; z < StoragesToNotGroundTransportsCount; z++)
                 {
+                    // проверить едет ли TransportsToStoragesCount до этого StoragesToNotGroundTransportsCount (второго логиста)
+
                     var isAssignedNonGroundTransport = Model.NewBoolVar($"non_ground_assigned_{i}_{j}_{z}");
                     
                     Model.AddMultiplicationEquality(isAssignedNonGroundTransport,
