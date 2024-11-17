@@ -139,36 +139,51 @@ namespace Backand.ManagersClasses
         //Create new object 
         public static async Task CreateConstruction(HttpContext context, ApplicationContext dbContext)
         {
-            BaseResponse response;
             try
             {
                 var constructions = dbContext.Construction;
-
-                //var requestBody = await new StreamReader(context.Request.Body).ReadToEndAsync();
-                //Console.WriteLine("Received JSON:");
-                //Console.WriteLine(requestBody); // Логируем присланный JSON
 
                 Construction? construction = await context.Request.ReadFromJsonAsync<Construction>(new JsonSerializerOptions()
                 {
                     PropertyNamingPolicy = new CustomCammelCase()
                 });
 
+                if (construction.ConstructionName == "")
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(true, "Название обязательно для заполнения."));
+                    return;
+                }
+
+                if (construction.ConstructionTypeId == 0)
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(true, "Тип обязателен для заполнения."));
+                    return;
+                }
+
                 if (construction != null)
                 {
                     construction.ConstructionStateId = BuildState.Planned;
                     await constructions.AddAsync(construction);
                     await dbContext.SaveChangesAsync();
-                    response = new(false, "Сооружение добавлено!");
+
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(false, "Сооружение добавлено!"));
+                    return; // Important: Exit early after successful processing
                 }
                 else
-                    response = new(true, "Неправильные передаваемые данные о сооружении!");
-
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest; // Explicitly set 400
+                    await context.Response.WriteAsJsonAsync(new BaseResponse(true, "Неправильные передаваемые данные о сооружении!"));
+                    return; // Exit
+                }
             }
             catch (Exception exc)
             {
-                response = new(true, exc.ToString());
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError; // Set 500 for server errors
+                await context.Response.WriteAsJsonAsync(new BaseResponse(true, exc.Message)); // Log just the message, not the whole stack trace for security
+                return; // Exit
             }
-            await context.Response.WriteAsJsonAsync(response);
         }
 
         //Update object
