@@ -4,6 +4,7 @@ using Backand.Services.AlgorithmServices.AlgorithmSolvers.Callbacks;
 using Backand.Services.AlgorithmServices.AlgorithmSolvers.Parameters;
 using Backand.Services.AlgorithmServices.AlgorithmSolvers.ResultValues;
 using Google.OrTools.Sat;
+using System.Diagnostics;
 
 namespace Backand.Services.AlgorithmServices.AlgorithmSolvers.Abstraction;
 
@@ -77,7 +78,6 @@ public abstract class CpSatAlgorithmBaseSolver
         InitMaterialAssignVariables();
         InitMaterialsConstraints();
         InitStoragesToNonGroundTransportsVariablesAndConstrains();
-        InitStoragesToNonGroundTransportsConstrains();
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public abstract class CpSatAlgorithmBaseSolver
     {
         IsGroundDeliveryVariable = Model.NewBoolVar($"is_only_ground_delivery");
 
-        if (!DeliveryTypes.Contains((int)TransportTypeValue.Ground))
+         if (!DeliveryTypes.Contains((int)TransportTypeValue.Ground))
             Model.Add(IsGroundDeliveryVariable == 0);
         else if (DeliveryTypes.Contains((int)TransportTypeValue.Ground) && DeliveryTypes.Length == 1)
             Model.Add(IsGroundDeliveryVariable == 1);
@@ -140,11 +140,7 @@ public abstract class CpSatAlgorithmBaseSolver
                 transportToStoragesAssignsVector[j] = TransportsToStoragesAssignVariableMatrix[i, j];
                 var isGroundAssigned = Model.NewBoolVar("{i}_{j}_is_ground_delivery");//нигде не используется
             }
-            //неправильно учитывается возможность одного транспорта ехать на разные склады. Сейчас работает так, что например 1 транспорт представленный в массиве может ехать только
-            //на 1 слкад. Хотя нужно сделать так, чтобы i-й транспорт существовал в бесконечных экземплярах и мог быть использован для параллельной паездки на разные склады.
-            //возможно так Model.Add(transportToStoragesAssignsSum <= maxAssignmentsPerTransport);, но надо проверить
             var transportToStoragesAssignsSum = LinearExpr.Sum(transportToStoragesAssignsVector);
-            Model.Add(transportToStoragesAssignsSum <= StoragesCount);
         }
     }
 
@@ -162,7 +158,6 @@ public abstract class CpSatAlgorithmBaseSolver
             }
 
             var transportsToStorageAssignsSum = LinearExpr.Sum(transportsToStorageAssignsVector);
-            Model.Add(transportsToStorageAssignsSum <= TransportsToStoragesCount);
             Model.Add(StorageAssignVariableVector[i] == transportsToStorageAssignsSum);
         }
     }
@@ -225,26 +220,8 @@ public abstract class CpSatAlgorithmBaseSolver
                 storageToNotGroundTransportsAssignsVector[j] = StoragesToNotGroundTransportsAssignVariableMatrix[i, j];
             }
             var storageToNotGroundTransportsAssignsSum = LinearExpr.Sum(storageToNotGroundTransportsAssignsVector);
-            Model.Add(storageToNotGroundTransportsAssignsSum == StorageAssignVariableVector[i]).OnlyEnforceIf(IsGroundDeliveryVariable.Not());
+            Model.Add(StorageAssignVariableVector[i] == storageToNotGroundTransportsAssignsSum).OnlyEnforceIf(IsGroundDeliveryVariable.Not());
             Model.Add(storageToNotGroundTransportsAssignsSum == 0).OnlyEnforceIf(IsGroundDeliveryVariable);
-        }
-    }
-    
-    /// <summary>
-    /// Инициализировать ограничения от склада до НЕ наземного транспорта.
-    /// </summary>
-    private void InitStoragesToNonGroundTransportsConstrains()
-    {
-        for (var i = 0; i < StoragesToNotGroundTransportsCount; i++)
-        {
-            var storageToNotGroundTransportsAssignsVector = new BoolVar[StoragesCount];
-            for (var j = 0; j < StoragesCount; j++)
-            {
-                storageToNotGroundTransportsAssignsVector[j] = StoragesToNotGroundTransportsAssignVariableMatrix[j, i];
-            }
-            var storageToNotGroundTransportsAssignsSum = LinearExpr.Sum(storageToNotGroundTransportsAssignsVector);
-            Model.Add(storageToNotGroundTransportsAssignsSum == 0).OnlyEnforceIf(IsGroundDeliveryVariable);
-            Model.Add(storageToNotGroundTransportsAssignsSum <= 1).OnlyEnforceIf(IsGroundDeliveryVariable.Not());
         }
     }
 

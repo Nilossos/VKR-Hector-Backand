@@ -150,6 +150,8 @@ public class AlgorithmDataPreparer
                     objectCoordinates.Y
                 );
 
+                distance = Math.Round(distance, 3);
+
                 // Обновляем значение Distance в объекте deliveryInfo
                 deliveryInfo.Distance = (decimal)distance;
 
