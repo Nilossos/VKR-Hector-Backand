@@ -8,11 +8,11 @@ public partial class Storage
 {
     public int StorageId { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string Name { get; set; }
 
     public int? RegionId { get; set; }
 
-    public string Address { get; set; } = null!;
+    public string Address { get; set; }
 
     public int? ManufacturerId { get; set; }
 

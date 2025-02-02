@@ -1,5 +1,6 @@
 ﻿using Backand.DbEntities.ConstructionSpace;
 using Backand.FrontendEntities.Links;
+using Backand.FrontendEntities.Requests;
 
 namespace Backand.FrontendEntities.AlgorithmResponse
 {
@@ -11,5 +12,6 @@ namespace Backand.FrontendEntities.AlgorithmResponse
 		public EntityLink Subsidiary { get; set; } = null!;
 		public List<OrderVariant> Variants { get; init; } = new();
 		public bool IsAssemblyBuildRequired { get; init; }
-	}
+        public Filter Filter { get; set; }
+    }
 }
